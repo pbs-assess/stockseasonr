@@ -1,5 +1,5 @@
 
-# stockseason
+# stockseasonr
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.org/pbs-assess/stockseasonr.svg?branch=master)](https://travis-ci.org/pbs-assess/stockseasonr)
 <!-- badges: end -->
