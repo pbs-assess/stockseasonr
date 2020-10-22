@@ -22,8 +22,11 @@
 #' @examples
 #' # FIXME: make smaller/faster for example:
 #' m <- fit_stockseason(catch_dat, comp_dat)
+
 fit_stockseason <- function(catch_dat = NULL, comp_dat, 
-                            model_type = "composition", silent = FALSE, 
+                            model_type = "composition", 
+                            random_walk = TRUE,
+                            silent = FALSE, 
                             nlminb_loops = 1) {
   
   #define model type (by default composition only)
@@ -32,12 +35,10 @@ fit_stockseason <- function(catch_dat = NULL, comp_dat,
   }
   
   if (model_type == "integrated") {
-    x <- gen_tmb(catch_dat, comp_dat)
-    model_name <- "nb_dirchlet_1re"
+    x <- gen_tmb(catch_dat, comp_dat, random_walk)
     random_ints <- c("z1_k", "z2_k")
   } else if (model_type == "composition") {
-    x <- gen_tmb(comp_dat)
-    model_name <- "dirchlet_1re"
+    x <- gen_tmb(comp_dat, random_walk)
     random_ints <- "z_rfac"
   }
   
@@ -52,7 +53,7 @@ fit_stockseason <- function(catch_dat = NULL, comp_dat,
     )
   )
   obj1 <- TMB::MakeADFun(
-    data = c(list(model = model_name), x$data),
+    data = c(list(model = "nb_dirchlet_1re"), x$data),
     parameters = x$pars,
     map = tmb_map1,
     DLL = "stockseasonr_TMBExports", silent = silent
@@ -63,7 +64,7 @@ fit_stockseason <- function(catch_dat = NULL, comp_dat,
 
   if (!silent) cat("Fitting fixed and random effects\n")
   obj <- TMB::MakeADFun(
-    data = c(list(model = model_name), x$data),
+    data = c(list(model = "nb_dirchlet_1re"), x$data),
     parameters = obj1$env$parList(opt1$par),
     map = x$tmb_map,
     random = random_ints,
@@ -78,7 +79,7 @@ fit_stockseason <- function(catch_dat = NULL, comp_dat,
   TMB::sdreport(obj)
 }
 
-gen_tmb <- function(catch_dat, comp_dat) {
+gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
   ## catch data
   yr_vec_catch <- as.numeric(as.factor(as.character(catch_dat$year))) - 1
 
@@ -202,7 +203,9 @@ gen_tmb <- function(catch_dat, comp_dat) {
     X2_ij = fix_mm_comp,
     factor2k_i = yr_vec_comp,
     nk2 = length(unique(yr_vec_comp)),
-    X2_pred_ij = pred_mm_comp
+    X2_pred_ij = pred_mm_comp,
+    # conditionals
+    random_walk = ifelse(random_walk == TRUE, 1, 0)
   )
 
   # input parameter initial values

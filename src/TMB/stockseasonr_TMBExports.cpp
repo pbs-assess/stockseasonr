@@ -7,7 +7,7 @@
 template<class Type>
 Type objective_function<Type>::operator() () {
   DATA_STRING(model);
-  if (model == "nb_dirchlet_1re") {
+  if(model == "nb_dirchlet_1re") {
     return nb_dirchlet_1re(this);
   } else {
     error("Unknown model.");

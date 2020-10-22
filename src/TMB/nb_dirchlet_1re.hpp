@@ -21,12 +21,12 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   DATA_IVECTOR(pred_factor2k_h);
   DATA_IVECTOR(pred_factor2k_levels);
   // Composition 
-  DATA_MATRIX(y2_ig);		// matrix of observed distribuons for g 
-  DATA_MATRIX(X2_ij);      	// model matrix for fixed effects
+  DATA_MATRIX(y2_ig);   // matrix of observed distribuons for g 
+  DATA_MATRIX(X2_ij);       // model matrix for fixed effects
   DATA_IVECTOR(factor2k_i); // vector of random factor levels
-  DATA_INTEGER(nk2); 		// number of factor levels
+  DATA_INTEGER(nk2);    // number of factor levels
   DATA_MATRIX(X2_pred_ij);    // prediction matrix for compositon
-  
+  DATA_INTEGER(random_walk);
   
   // PARAMETERS 
   // Abundance 
@@ -35,8 +35,8 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   PARAMETER_VECTOR(z1_k);
   PARAMETER(log_sigma_zk1);
   // Composition
-  PARAMETER_MATRIX(b2_jg); 	 // matrix of fixed int. (rows = fixed cov, cols = g)
-  PARAMETER_VECTOR(z2_k); 	 // vector of random int.
+  PARAMETER_MATRIX(b2_jg);   // matrix of fixed int. (rows = fixed cov, cols = g)
+  PARAMETER_VECTOR(z2_k);    // vector of random int.
   PARAMETER(log_sigma_zk2);  // among random int SD
   
   
@@ -46,8 +46,8 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   vector<Type> linear_predictor1_i(n1);
   // int n_preds1 = X1_pred_ij.rows();   // number of abund predictions (finer)
   // Composition 
-  int n2 = y2_ig.rows(); 		          // number of observations
-  int n_cat = y2_ig.cols(); 		      // number of categories
+  int n2 = y2_ig.rows();              // number of observations
+  int n_cat = y2_ig.cols();           // number of categories
   // int n_preds2 = X2_pred_ij.rows();   // number of comp predictions (coarser)
   matrix<Type> total_eff(n2, n_cat);
   
@@ -96,11 +96,30 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   }
   
   // Probability of random composition coefficients
-  for (int k = 0; k < nk1; k++){
-    jnll -= dnorm(z1_k(k), Type(0.0), exp(log_sigma_zk1), true);
-  }
-  for (int k = 0; k < nk2; k++) {
-    jnll -= dnorm(z2_k(k), Type(0.0), exp(log_sigma_zk2), true);
+  if (random_walk == 1) {
+    for (int k = 0; k < nk1; k++) {
+      if (k == 0) {
+        jnll -= dnorm(z1_k(k), Type(0.0), exp(log_sigma_zk1), true);  
+      }
+      if (k > 0) {
+        jnll -= dnorm(z1_k(k), z1_k(k - 1), exp(log_sigma_zk1), true);
+      }
+    }
+    for (int k = 0; k < nk2; k++) {
+      if (k == 0) {
+        jnll -= dnorm(z2_k(k), Type(0.0), exp(log_sigma_zk2), true);  
+      }
+      if (k > 0) {
+        jnll -= dnorm(z2_k(k), z2_k(k - 1), exp(log_sigma_zk2), true);
+      }
+    }
+  } else {
+    for (int k = 0; k < nk1; k++){
+      jnll -= dnorm(z1_k(k), Type(0.0), exp(log_sigma_zk1), true);
+    }
+    for (int k = 0; k < nk2; k++) {
+      jnll -= dnorm(z2_k(k), Type(0.0), exp(log_sigma_zk2), true);
+    }
   }
   
   
