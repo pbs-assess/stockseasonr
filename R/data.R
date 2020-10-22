@@ -1,9 +1,9 @@
 #' Example data TODO
 #'
 #' @format A data frame.
-"catch_dat"
+"catch_ex"
 
 #' Example data TODO
 #'
 #' @format A data frame.
-"comp_dat"
+"comp_ex"

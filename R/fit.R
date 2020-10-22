@@ -22,9 +22,24 @@
 #' @examples
 #' # FIXME: make smaller/faster for example:
 #' m <- fit_stockseason(catch_dat, comp_dat)
-fit_stockseason <- function(catch_dat, comp_dat, silent = FALSE,
-                         nlminb_loops = 1) {
-  x <- gen_tmb(catch_dat, comp_dat)
+fit_stockseason <- function(catch_dat = NULL, comp_dat, 
+                            model_type = "composition", silent = FALSE, 
+                            nlminb_loops = 1) {
+  
+  #define model type (by default composition only)
+  if (model_type == "integrated" & is.null(catch_dat)) {
+    stop("Cannot fit integrated model without catch data")
+  }
+  
+  if (model_type == "integrated") {
+    x <- gen_tmb(catch_dat, comp_dat)
+    model_name <- "nb_dirchlet_1re"
+    random_ints <- c("z1_k", "z2_k")
+  } else if (model_type == "composition") {
+    x <- gen_tmb(comp_dat)
+    model_name <- "dirchlet_1re"
+    random_ints <- "z_rfac"
+  }
   
   if (!silent) cat("Optimizing for fixed effects\n")
   tmb_map1 <- c(
@@ -37,7 +52,7 @@ fit_stockseason <- function(catch_dat, comp_dat, silent = FALSE,
     )
   )
   obj1 <- TMB::MakeADFun(
-    data = c(list(model = "nb_dirchlet_1re"), x$data),
+    data = c(list(model = model_name), x$data),
     parameters = x$pars,
     map = tmb_map1,
     DLL = "stockseasonr_TMBExports", silent = silent
@@ -48,10 +63,10 @@ fit_stockseason <- function(catch_dat, comp_dat, silent = FALSE,
 
   if (!silent) cat("Fitting fixed and random effects\n")
   obj <- TMB::MakeADFun(
-    data = c(list(model = "nb_dirchlet_1re"), x$data),
+    data = c(list(model = model_name), x$data),
     parameters = obj1$env$parList(opt1$par),
     map = x$tmb_map,
-    random = c("z1_k", "z2_k"),
+    random = random_ints,
     DLL = "stockseasonr_TMBExports", silent = silent
   )
   opt <- stats::nlminb(obj$par, obj$fn, obj$gr)
@@ -84,6 +99,7 @@ gen_tmb <- function(catch_dat, comp_dat) {
   offset_pos <- grep("^offset$", colnames(fix_mm_catch))
 
   # generic data frame that is skeleton for both comp and catch predictions
+  # conditional allows different regions to have different ranges of months
   if (comp_dat$gear[1] == "sport") {
     pred_dat <- group_split(comp_dat, region) %>%
       map_dfr(., function(x) {
@@ -104,6 +120,7 @@ gen_tmb <- function(catch_dat, comp_dat) {
       region = unique(comp_dat$region)
     )
   }
+  
   # list of strata from composition dataset to retain in catch predictive model
   # to ensure aggregate abundance can be calculated
   comp_strata <- unique(paste(pred_dat$month_n, pred_dat$region, sep = "_"))
@@ -210,7 +227,7 @@ gen_tmb <- function(catch_dat, comp_dat) {
   b1_j_map <- seq_along(pars$b1_j)
   b1_j_map[offset_pos] <- NA
   tmb_map <- list(b1_j = as.factor(b1_j_map))
-  # offset for composition parameterss
+  # offset for composition parameters
   if (!is.na(comp_map$agg[1])) {
     temp_betas <- pars$b2_jg
     for (i in seq_len(nrow(comp_map))) {
@@ -241,5 +258,92 @@ gen_tmb <- function(catch_dat, comp_dat) {
     "data" = data, "pars" = pars, "comp_wide" = gsi_wide,
     "pred_dat_catch" = pred_dat_catch, "pred_dat_comp" = pred_dat,
     "tmb_map" = tmb_map
+  )
+}
+
+# stripped down version above to only pass composition data
+gen_tmb_composition <- function(comp_dat) {
+  ## composition data
+  gsi_wide <- comp_dat %>%
+    pivot_wider(., names_from = agg, values_from = agg_prob) %>%
+    mutate_if(is.numeric, ~ replace_na(., 0.00001))
+  
+  obs_comp <- gsi_wide %>%
+    select(-c(sample_id:nn)) %>%
+    as.matrix()
+  
+  yr_vec_comp <- as.numeric(gsi_wide$year) - 1
+  
+  months2 <- unique(gsi_wide$month_n)
+  spline_type <- ifelse(max(months2) == 12, "cc", "tp")
+  n_knots <- ifelse(max(months2) == 12, 4, 3)
+  # response variable doesn't matter, since not fit
+  m2 <- mgcv::gam(rep(0, length.out = nrow(gsi_wide)) ~
+                    region + s(month_n, bs = spline_type, k = n_knots, by = region),
+                  data = gsi_wide
+  )
+  fix_mm_comp <- predict(m2, type = "lpmatrix")
+  
+  pred_mm_comp <- predict(m2, pred_dat, type = "lpmatrix")
+  
+  ## region-stock combinations with 0 observations to map
+  comp_map <- comp_dat %>%
+    group_by(region, agg) %>%
+    complete(., region, nesting(agg)) %>%
+    summarize(total_obs = sum(agg_prob), .groups = "drop") %>%
+    filter(is.na(total_obs)) %>%
+    select(agg, region)
+  
+  # input data
+  data <- list(
+    y2_ig = obs_comp,
+    X2_ij = fix_mm_comp,
+    factor2k_i = yr_vec_comp,
+    nk2 = length(unique(yr_vec_comp)),
+    X2_pred_ij = pred_mm_comp
+  )
+  
+  # input parameter initial values
+  pars <- list(
+    # composition parameters
+    b2_jg = matrix(runif(ncol(fix_mm_comp) * ncol(obs_comp), 0.1, 0.9),
+                   nrow = ncol(fix_mm_comp),
+                   ncol = ncol(obs_comp)
+    ),
+    z2_k = rep(0, times = length(unique(yr_vec_comp))),
+    log_sigma_zk2 = log(0.5)
+  )
+  
+  # mapped values (not estimated)
+  # offset for composition parameters
+  if (!is.na(comp_map$agg[1])) {
+    temp_betas <- pars$b2_jg
+    for (i in seq_len(nrow(comp_map))) {
+      offset_stock_pos <- grep(
+        paste(comp_map$agg[1], collapse = "|"),
+        colnames(obs_comp)
+      )
+      offset_region_pos <- grep(
+        paste(comp_map$region[1], collapse = "|"),
+        colnames(fix_mm_comp)
+      )
+      for (j in seq_len(ncol(fix_mm_comp))) {
+        for (k in seq_len(ncol(obs_comp))) {
+          if (j %in% offset_region_pos & k %in% offset_stock_pos) {
+            pars$b2_jg[j, k] <- 0.00001
+            temp_betas[j, k] <- NA
+          }
+        }
+      }
+    }
+    comp_map_pos <- which(is.na(as.vector(temp_betas)))
+    b2_jg_map <- seq_along(pars$b2_jg)
+    b2_jg_map[comp_map_pos] <- NA
+    tmb_map <- list(b2_jg = as.factor(b2_jg_map))
+  }
+  
+  list(
+    "data" = data, "pars" = pars, "comp_wide" = gsi_wide,
+    "pred_dat_comp" = pred_dat, "tmb_map" = tmb_map
   )
 }
