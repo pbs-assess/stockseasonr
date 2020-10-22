@@ -1,11 +1,7 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
-sudo: false
 cache: packages
-warnings_are_errors: true
-r_check_args: "--as-cran --no-build-vignettes --no-manual"
-r_build_args: "--no-manual"
 
 before_install:
   - mkdir -p ~/.R
