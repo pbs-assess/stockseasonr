@@ -1,10 +1,11 @@
 
-# stockseasonr
+# stockseasonr <a href='https://github.com/pbs-assess/stockseasonr'><img src='man/figures/stockseasonr-logo.png' align="right" height="139" /></a>
+
+> 6--8 word summary goes here
+
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.org/pbs-assess/stockseasonr.svg?branch=master)](https://travis-ci.org/pbs-assess/stockseasonr)
 <!-- badges: end -->
-
-stockseasonr is ...
 
 ## Installation
 
