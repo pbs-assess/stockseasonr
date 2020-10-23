@@ -372,8 +372,8 @@ gen_tmb_comp <- function(comp_dat, random_walk = TRUE) {
   tmb_map <- list(
     log_phi = factor(NA),
     log_sigma_zk1 = factor(NA),
-    b1_j = factor(rep(NA, length(x$pars$b1_j))),
-    z1_k = factor(rep(NA, length(x$pars$z1_k)))
+    b1_j = factor(rep(NA, length(pars$b1_j))),
+    z1_k = factor(rep(NA, length(pars$z1_k)))
   )
   # offset for composition parameters
   if (!is.na(comp_map$agg[1])) {
