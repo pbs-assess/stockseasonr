@@ -101,7 +101,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   // fixed-effects nll
   Type jll = 0; // initialize joint log-likelihood
   // positive because the mental math hurt my head...
-  for(int i = 0; i <= (n2 - 1); i++){
+  for (int i = 0; i <= (n2 - 1); i++){
     jll = jll + lgamma((n_plus(i) + 1));
     jll = jll + lgamma(gamma_plus(i));
     jll = jll - lgamma((n_plus(i) + gamma_plus(i)));
@@ -147,14 +147,14 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   pred_gamma = exp(pred_eff.array());
   pred_gamma_plus = pred_gamma.rowwise().sum();
   pred_theta = 1 / (pred_gamma_plus + 1);
-  for(int m = 0; m < n_pred_levels; m++) {
+  for (int m = 0; m < n_pred_levels; m++) {
     for(int k = 0; k < n_cat; k++) {
       pred_pi(m, k) = pred_gamma(m, k) / pred_theta(m);
     }
   }
   pred_n_plus = pred_pi.rowwise().sum();
-  for(int m = 0; m < n_pred_levels; m++) {
-    for(int k = 0; k < n_cat; k++) {
+  for (int m = 0; m < n_pred_levels; m++) {
+    for (int k = 0; k < n_cat; k++) {
       pred_pi_prop(m, k) = pred_pi(m, k) / pred_n_plus(m);
       inv_logit_pred_pi_prop(m, k) = invlogit(pred_pi_prop(m, k));
     }
