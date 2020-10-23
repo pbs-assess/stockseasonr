@@ -42,7 +42,8 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   PARAMETER_VECTOR(z2_k);    // vector of random int.
   PARAMETER(log_sigma_zk2);  // among random int SD
 
-
+  Type jnll = 0.0;
+  
   // CALCULATIONS
   if (abundance_component == 1) {
     // intermediate storage
@@ -111,8 +112,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     }
   }
   // now it's negative!
-  Type jnll;
-  jnll = -jll;
+  jnll -= jll;
   
   // random-effects nll
   if (random_walk == 1) {
@@ -132,7 +132,8 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   
   
   // FIXED-EFFECTS PREDICTIONS
-  // Composition 
+  // Composition
+  int n_pred_levels = X2_pred_ij.rows();     
   matrix<Type> pred_eff(n_pred_levels, n_cat);    //pred effects on log scale
   matrix<Type> pred_gamma(n_pred_levels, n_cat);  //transformed pred effects 
   vector<Type> pred_gamma_plus(n_pred_levels);        
