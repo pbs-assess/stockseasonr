@@ -40,21 +40,28 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
   if (model_type == "integrated") {
     x <- gen_tmb(catch_dat, comp_dat, random_walk)
     random_ints <- c("z1_k", "z2_k")
+    tmb_map1 <- c(
+      x$tmb_map,
+      list(
+        z1_k = factor(rep(NA, length(x$pars$z1_k))),
+        z2_k = factor(rep(NA, length(x$pars$z2_k))),
+        log_sigma_zk1 = as.factor(NA),
+        log_sigma_zk2 = as.factor(NA)
+      )
+    )
   } else if (model_type == "composition") {
     x <- gen_tmb_comp(comp_dat, random_walk)
-    random_ints <- c("z1_k", "z2_k")
+    random_ints <- "z2_k"
+    tmb_map1 <- c(
+      x$tmb_map,
+      list(
+        z2_k = factor(rep(NA, length(x$pars$z2_k))),
+        log_sigma_zk2 = as.factor(NA)
+      )
+    )
   }
   
   if (!silent) cat("Optimizing for fixed effects\n")
-  tmb_map1 <- c(
-    x$tmb_map,
-    list(
-      z1_k = factor(rep(NA, length(x$pars$z1_k))),
-      z2_k = factor(rep(NA, length(x$pars$z2_k))),
-      log_sigma_zk1 = as.factor(NA),
-      log_sigma_zk2 = as.factor(NA)
-    )
-  )
   obj1 <- TMB::MakeADFun(
     data = c(list(model = "nb_dirchlet_1re"), x$data),
     parameters = x$pars,
@@ -360,9 +367,15 @@ gen_tmb_comp <- function(comp_dat, random_walk = TRUE) {
     log_sigma_zk2 = log(0.5)
   )
   
-  # mapped values (not estimated)
+  # mapped values (not estimated); includes all the fake abundance parameters
+  # and levels with missing composition data
+  tmb_map <- list(
+    log_phi = factor(NA),
+    log_sigma_zk1 = factor(NA),
+    b1_j = factor(rep(NA, length(x$pars$b1_j))),
+    z1_k = factor(rep(NA, length(x$pars$z1_k)))
+  )
   # offset for composition parameters
-  tmb_map <- NULL
   if (!is.na(comp_map$agg[1])) {
     temp_betas <- pars$b2_jg
     for (i in seq_len(nrow(comp_map))) {
