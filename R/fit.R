@@ -49,7 +49,7 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
         log_sigma_zk2 = as.factor(NA)
       )
     )
-  } else if (model_type == "composition") {
+  } else {
     x <- gen_tmb_comp(comp_dat, random_walk)
     random_ints <- "z2_k"
     tmb_map1 <- c(
