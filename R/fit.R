@@ -40,28 +40,21 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
   if (model_type == "integrated") {
     x <- gen_tmb(catch_dat, comp_dat, random_walk)
     random_ints <- c("z1_k", "z2_k")
-    tmb_map1 <- c(
-      x$tmb_map,
-      list(
-        z1_k = factor(rep(NA, length(x$pars$z1_k))),
-        z2_k = factor(rep(NA, length(x$pars$z2_k))),
-        log_sigma_zk1 = as.factor(NA),
-        log_sigma_zk2 = as.factor(NA)
-      )
-    )
   } else if (model_type == "composition") {
-    x <- gen_tmb_composition(comp_dat, random_walk)
-    random_ints <- "z2_k"
-    tmb_map1 <- c(
-      x$tmb_map,
-      list(
-        z2_k = factor(rep(NA, length(x$pars$z2_k))),
-        log_sigma_zk2 = as.factor(NA)
-      )
-    )
+    x <- gen_tmb_comp(comp_dat, random_walk)
+    random_ints <- c("z1_k", "z2_k")
   }
   
   if (!silent) cat("Optimizing for fixed effects\n")
+  tmb_map1 <- c(
+    x$tmb_map,
+    list(
+      z1_k = factor(rep(NA, length(x$pars$z1_k))),
+      z2_k = factor(rep(NA, length(x$pars$z2_k))),
+      log_sigma_zk1 = as.factor(NA),
+      log_sigma_zk2 = as.factor(NA)
+    )
+  )
   obj1 <- TMB::MakeADFun(
     data = c(list(model = "nb_dirchlet_1re"), x$data),
     parameters = x$pars,
@@ -276,7 +269,7 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
 }
 
 # stripped down version of above to only pass composition data
-gen_tmb_composition <- function(comp_dat, random_walk = TRUE) {
+gen_tmb_comp <- function(comp_dat, random_walk = TRUE) {
   ## composition data
   gsi_wide <- comp_dat %>%
     pivot_wider(., names_from = agg, values_from = agg_prob) %>%
@@ -333,6 +326,15 @@ gen_tmb_composition <- function(comp_dat, random_walk = TRUE) {
   
   # input data
   data <- list(
+    #fake catch data to feed to template
+    y1_i = rep(1, length = 2),
+    X1_ij = matrix(rep(1, length = 2), ncol = 1),
+    factor1k_i = rep(as.integer(1), length = 2),
+    nk1 = as.integer(1),
+    X1_pred_ij = matrix(rep(1, length = 2), ncol = 1),
+    pred_factor2k_h = rep(as.integer(1), length = 2),
+    pred_factor2k_levels = rep(as.integer(1), length = 2),
+    # comp data
     y2_ig = obs_comp,
     X2_ij = fix_mm_comp,
     factor2k_i = yr_vec_comp,
@@ -344,6 +346,11 @@ gen_tmb_composition <- function(comp_dat, random_walk = TRUE) {
   
   # input parameter initial values
   pars <- list(
+    #fake abundance parameters to feed to template
+    b1_j = rep(1, length = 2),
+    log_phi = log(1.5),
+    z1_k = rep(1, length = 2),
+    log_sigma_zk1 = log(0.25),
     # composition parameters
     b2_jg = matrix(runif(ncol(fix_mm_comp) * ncol(obs_comp), 0.1, 0.9),
                    nrow = ncol(fix_mm_comp),

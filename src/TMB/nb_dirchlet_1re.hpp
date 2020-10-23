@@ -10,30 +10,42 @@
 template<class Type>
 Type nb_dirchlet_1re(objective_function<Type>* obj) {
   
-  // CONDITIONALS
+  // DATA
+  // abundance data
+  DATA_VECTOR(y1_i);
+  DATA_MATRIX(X1_ij);
+  DATA_IVECTOR(factor1k_i);
+  DATA_INTEGER(nk1);
+  DATA_MATRIX(X1_pred_ij);
+  // vector of higher level aggregates used to generate predictions; length
+  // is equal to the number of predictions made
+  DATA_IVECTOR(pred_factor2k_h);
+  DATA_IVECTOR(pred_factor2k_levels);
+  // composition data
+  DATA_MATRIX(y2_ig);   // matrix of observed distributions for g 
+  DATA_MATRIX(X2_ij);       // model matrix for fixed effects
+  DATA_IVECTOR(factor2k_i); // vector of random factor levels
+  DATA_INTEGER(nk2);    // number of factor levels
+  DATA_MATRIX(X2_pred_ij);    // prediction matrix for compositon
+  // conditionals
   DATA_INTEGER(abundance_component);
   DATA_INTEGER(random_walk);
 
+  // PARAMETERS
+  //abundance parameters
+  PARAMETER_VECTOR(b1_j);
+  PARAMETER(log_phi);
+  PARAMETER_VECTOR(z1_k);
+  PARAMETER(log_sigma_zk1);
+  // composition parameters
+  PARAMETER_MATRIX(b2_jg);   // matrix of fixed int. (rows = fixed cov, cols = g)
+  PARAMETER_VECTOR(z2_k);    // vector of random int.
+  PARAMETER(log_sigma_zk2);  // among random int SD
+
+
+  // CALCULATIONS
   if (abundance_component == 1) {
-    // ABUNDANCE COMPONENT
-    // data
-    DATA_VECTOR(y1_i);
-    DATA_MATRIX(X1_ij);
-    DATA_IVECTOR(factor1k_i);
-    DATA_INTEGER(nk1);
-    DATA_MATRIX(X1_pred_ij);
-    // vector of higher level aggregates used to generate predictions; length
-    // is equal to the number of predictions made
-    DATA_IVECTOR(pred_factor2k_h);
-    DATA_IVECTOR(pred_factor2k_levels);
-    
-    // parameters 
-    PARAMETER_VECTOR(b1_j);
-    PARAMETER(log_phi);
-    PARAMETER_VECTOR(z1_k);
-    PARAMETER(log_sigma_zk1);
-  
-    // intermediates
+    // intermediate storage
     int n1 = y1_i.size();
     vector<Type> linear_predictor1_i(n1);
     
@@ -67,24 +79,12 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
 
 
   // COMPOSITION COMPONENT
-  // Data
-  DATA_MATRIX(y2_ig);   // matrix of observed distribuons for g 
-  DATA_MATRIX(X2_ij);       // model matrix for fixed effects
-  DATA_IVECTOR(factor2k_i); // vector of random factor levels
-  DATA_INTEGER(nk2);    // number of factor levels
-  DATA_MATRIX(X2_pred_ij);    // prediction matrix for compositon
-  
-  // Parameters
-  PARAMETER_MATRIX(b2_jg);   // matrix of fixed int. (rows = fixed cov, cols = g)
-  PARAMETER_VECTOR(z2_k);    // vector of random int.
-  PARAMETER(log_sigma_zk2);  // among random int SD
-  
-  // Intermediates 
+  // intermediate storage
   int n2 = y2_ig.rows();              // number of observations
   int n_cat = y2_ig.cols();           // number of categories
   matrix<Type> total_eff(n2, n_cat);
   
-  // Linear predictor
+  // linear predictor
   matrix<Type> fx_eff = X2_ij * b2_jg;
   
   for (int i = 0; i < n2; ++i) {
@@ -167,8 +167,6 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     log_pred_abund = X1_pred_ij * b1_j;
     matrix<Type> pred_abund = exp(log_pred_abund.array());
     
-    ADREPORT(log_pred_abund);
-    
     // Calculate predicted abundance based on higher level groupings
     int n_preds = pred_factor2k_h.size();
     int n_pred_levels = pred_factor2k_levels.size();
@@ -183,7 +181,6 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
         }
       }
     }
-    ADREPORT(log_agg_pred_abund);
   
     // Combined predictions
     matrix<Type> pred_abund_mg(n_pred_levels, n_cat);
@@ -195,6 +192,9 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     }
     matrix<Type> log_pred_abund_mg = log(pred_abund_mg.array());
     
+    // Report
+    ADREPORT(log_pred_abund);
+    ADREPORT(log_agg_pred_abund);
     ADREPORT(log_pred_abund_mg);
   }
   
