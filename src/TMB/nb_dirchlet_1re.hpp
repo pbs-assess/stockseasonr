@@ -45,7 +45,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   Type jnll = 0.0;
   
   // CALCULATIONS
-  if (abundance_component == 1) {
+  if (abundance_component) {
     // intermediate storage
     int n1 = y1_i.size();
     vector<Type> linear_predictor1_i(n1);
@@ -62,7 +62,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     }
   
     // random-effects nll
-    if (random_walk == 1) {
+    if (random_walk) {
       for (int k = 0; k < nk1; k++) {
         if (k == 0) {
           jnll -= dnorm(z1_k(k), Type(0.0), exp(log_sigma_zk1), true);  
