@@ -24,20 +24,21 @@
 #' m <- fit_stockseason(catch_dat, comp_dat)
 
 fit_stockseason <- function(catch_dat = NULL, comp_dat, 
-                            model_type = "composition", 
+                            model_type = c("composition", "integrated"), 
                             random_walk = TRUE,
                             silent = FALSE, 
                             nlminb_loops = 1) {
   
+  model_type <- match.arg(model_type)
   #define model type (by default composition only)
-  if (model_type == "integrated" & is.null(catch_dat)) {
+  if (model_type == "integrated" && is.null(catch_dat)) {
     stop("Cannot fit integrated model without catch data")
   }
   
   if (model_type == "integrated") {
     x <- gen_tmb(catch_dat, comp_dat, random_walk)
     random_ints <- c("z1_k", "z2_k")
-  } else if (model_type == "composition") {
+  } else (model_type == "composition") {
     x <- gen_tmb(comp_dat, random_walk)
     random_ints <- "z_rfac"
   }
@@ -86,13 +87,13 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
   # generate model matrix based on GAM with spline type a function of months
   # retained
   months1 <- unique(catch_dat$month_n)
-  spline_type <- ifelse(max(months1) == 12, "cc", "tp")
-  n_knots <- ifelse(max(months1) == 12, 4, 3)
+  spline_type <- if (max(months1) == 12) "cc" else "tp"
+  n_knots <- if (max(months1) == 12) 4 else 3
 
   m1 <- mgcv::gam(catch ~
-  area + s(month_n, bs = spline_type, k = n_knots, by = area) + offset,
-  data = catch_dat,
-  family = mgcv::nb()
+      area + s(month_n, bs = spline_type, k = n_knots, by = area) + offset,
+    data = catch_dat,
+    family = mgcv::nb()
   )
   fix_mm_catch <- predict(m1, type = "lpmatrix")
 
@@ -169,12 +170,12 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
   yr_vec_comp <- as.numeric(gsi_wide$year) - 1
 
   months2 <- unique(gsi_wide$month_n)
-  spline_type <- ifelse(max(months2) == 12, "cc", "tp")
-  n_knots <- ifelse(max(months2) == 12, 4, 3)
+  spline_type <- if (max(months2) == 12) "cc" else "tp"
+  n_knots <- if (max(months2) == 12) 4 else 3
   # response variable doesn't matter, since not fit
   m2 <- mgcv::gam(rep(0, length.out = nrow(gsi_wide)) ~
-  region + s(month_n, bs = spline_type, k = n_knots, by = region),
-  data = gsi_wide
+      region + s(month_n, bs = spline_type, k = n_knots, by = region),
+    data = gsi_wide
   )
   fix_mm_comp <- predict(m2, type = "lpmatrix")
 
@@ -205,7 +206,7 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
     nk2 = length(unique(yr_vec_comp)),
     X2_pred_ij = pred_mm_comp,
     # conditionals
-    random_walk = ifelse(random_walk == TRUE, 1, 0)
+    random_walk = as.integer(random_walk)
   )
 
   # input parameter initial values
@@ -278,8 +279,8 @@ gen_tmb_composition <- function(comp_dat) {
   yr_vec_comp <- as.numeric(gsi_wide$year) - 1
   
   months2 <- unique(gsi_wide$month_n)
-  spline_type <- ifelse(max(months2) == 12, "cc", "tp")
-  n_knots <- ifelse(max(months2) == 12, 4, 3)
+  spline_type <- if (max(months2) == 12) "cc" else "tp"
+  n_knots <- if (max(months2) == 12) 4 else 3
   # response variable doesn't matter, since not fit
   m2 <- mgcv::gam(rep(0, length.out = nrow(gsi_wide)) ~
                     region + s(month_n, bs = spline_type, k = n_knots, by = region),
