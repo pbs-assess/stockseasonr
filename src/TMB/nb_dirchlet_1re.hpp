@@ -115,7 +115,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   jnll -= jll;
   
   // random-effects nll
-  if (random_walk == 1) {
+  if (random_walk) {
     for (int k = 0; k < nk2; k++) {
       if (k == 0) {
         jnll -= dnorm(z2_k(k), Type(0.0), exp(log_sigma_zk2), true);  
@@ -162,7 +162,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   
   ADREPORT(inv_logit_pred_pi_prop);
   
-  if (abundance_component == 1) {
+  if (abundance_component) {
     // Abundance predictions 
     vector<Type> log_pred_abund(X1_pred_ij.rows());
     log_pred_abund = X1_pred_ij * b1_j;
