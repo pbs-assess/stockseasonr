@@ -22,11 +22,8 @@
 #' @importFrom purrr map_dfr
 #'
 #' @examples
-#' # FIXME: make smaller/faster for example:
-#' m1 <- fit_stockseason(catch_ex, comp_ex)
-#' 
-#' m2 <- fit_stockseason(comp_dat = comp_ex, 
-#'   model_type = "composition", random_walk = FALSE)
+#' m1 <- fit_stockseason(comp_ex, model_type = "composition")
+#' m2 <- fit_stockseason(comp_ex, catch_ex, model_type = "integrated")
 
 fit_stockseason <- function(comp_dat, catch_dat = NULL,
                             model_type = c("composition", "integrated"), 
@@ -169,7 +166,6 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
   # construct factor key for regional aggregates associated with areas
   grouping_vec <- as.numeric(pred_dat_catch$reg_month_f) - 1
   grouping_key <- unique(grouping_vec)
-
   ## composition data
   gsi_wide <- comp_dat %>%
     pivot_wider(., names_from = agg, values_from = agg_prob) %>%

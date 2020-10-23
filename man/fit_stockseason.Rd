@@ -36,9 +36,6 @@ Output from \code{\link[TMB:sdreport]{TMB::sdreport()}}
 Fit model
 }
 \examples{
-# FIXME: make smaller/faster for example:
-m1 <- fit_stockseason(catch_ex, comp_ex)
-
-m2 <- fit_stockseason(comp_dat = comp_ex, 
-  model_type = "composition", random_walk = FALSE)
+m1 <- fit_stockseason(comp_ex, model_type = "composition")
+m2 <- fit_stockseason(comp_ex, catch_ex, model_type = "integrated")
 }
