@@ -7,10 +7,12 @@ dat <- readRDS(here::here("data-raw", "combined_model_inputs.RDS"))
 comp_full <- dat$comp_long[[1]]
 catch_full <- dat$catch_data[[1]]
 
+# drop some months and years to decrease size
 month_seq <- seq(from = 1, to = 12, by = 2)
-year_seq <- seq(from = 2007, to = 2012, by = 1)
+year_seq <- seq(from = 2007, to = 2011, by = 1)
 
-#subset by genetics sampling to increase speed
+#subset by genetics sampling to increase speed (messes up random intercepts 
+# NEED TO DEBUG)
 # samp_events <- comp_full %>% 
 #   pull(sample_id) %>% 
 #   unique() %>% 
@@ -40,7 +42,6 @@ catch_ex <- catch_full %>%
   droplevels() %>% 
   select(-eff_z#, -key
          )
-
 # save
 usethis::use_data(comp_ex, overwrite = TRUE)
 usethis::use_data(catch_ex, overwrite = TRUE)

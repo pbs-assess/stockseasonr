@@ -40,21 +40,28 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
   if (model_type == "integrated") {
     x <- gen_tmb(catch_dat, comp_dat, random_walk)
     random_ints <- c("z1_k", "z2_k")
-  } else (model_type == "composition") {
-    x <- gen_tmb(comp_dat, random_walk)
-    random_ints <- "z_rfac"
+    tmb_map1 <- c(
+      x$tmb_map,
+      list(
+        z1_k = factor(rep(NA, length(x$pars$z1_k))),
+        z2_k = factor(rep(NA, length(x$pars$z2_k))),
+        log_sigma_zk1 = as.factor(NA),
+        log_sigma_zk2 = as.factor(NA)
+      )
+    )
+  } else if (model_type == "composition") {
+    x <- gen_tmb_composition(comp_dat, random_walk)
+    random_ints <- "z2_k"
+    tmb_map1 <- c(
+      x$tmb_map,
+      list(
+        z2_k = factor(rep(NA, length(x$pars$z2_k))),
+        log_sigma_zk2 = as.factor(NA)
+      )
+    )
   }
   
   if (!silent) cat("Optimizing for fixed effects\n")
-  tmb_map1 <- c(
-    x$tmb_map,
-    list(
-      z1_k = factor(rep(NA, length(x$pars$z1_k))),
-      z2_k = factor(rep(NA, length(x$pars$z2_k))),
-      log_sigma_zk1 = as.factor(NA),
-      log_sigma_zk2 = as.factor(NA)
-    )
-  )
   obj1 <- TMB::MakeADFun(
     data = c(list(model = "nb_dirchlet_1re"), x$data),
     parameters = x$pars,
@@ -208,6 +215,7 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
     nk2 = length(unique(yr_vec_comp)),
     X2_pred_ij = pred_mm_comp,
     # conditionals
+    abundance_component = as.integer(1),
     random_walk = as.integer(random_walk)
   )
 
@@ -267,8 +275,8 @@ gen_tmb <- function(catch_dat, comp_dat, random_walk = TRUE) {
   )
 }
 
-# stripped down version above to only pass composition data
-gen_tmb_composition <- function(comp_dat) {
+# stripped down version of above to only pass composition data
+gen_tmb_composition <- function(comp_dat, random_walk = TRUE) {
   ## composition data
   gsi_wide <- comp_dat %>%
     pivot_wider(., names_from = agg, values_from = agg_prob) %>%
@@ -279,6 +287,29 @@ gen_tmb_composition <- function(comp_dat) {
     as.matrix()
   
   yr_vec_comp <- as.numeric(gsi_wide$year) - 1
+  
+  # generic data frame that is skeleton for predictions
+  # conditional allows different regions to have different ranges of months
+  if (comp_dat$gear[1] == "sport") {
+    pred_dat <- group_split(comp_dat, region) %>%
+      map_dfr(., function(x) {
+        expand.grid(
+          month_n = seq(min(x$month_n),
+                        max(x$month_n),
+                        by = 0.1
+          ),
+          region = unique(x$region)
+        )
+      })
+  } else {
+    pred_dat <- expand.grid(
+      month_n = seq(min(comp_dat$month_n),
+                    max(comp_dat$month_n),
+                    by = 0.1
+      ),
+      region = unique(comp_dat$region)
+    )
+  }
   
   months2 <- unique(gsi_wide$month_n)
   spline_type <- if (max(months2) == 12) "cc" else "tp"
@@ -306,7 +337,9 @@ gen_tmb_composition <- function(comp_dat) {
     X2_ij = fix_mm_comp,
     factor2k_i = yr_vec_comp,
     nk2 = length(unique(yr_vec_comp)),
-    X2_pred_ij = pred_mm_comp
+    X2_pred_ij = pred_mm_comp,
+    abundance_component = as.integer(0),
+    random_walk = as.integer(random_walk)
   )
   
   # input parameter initial values
@@ -322,6 +355,7 @@ gen_tmb_composition <- function(comp_dat) {
   
   # mapped values (not estimated)
   # offset for composition parameters
+  tmb_map <- NULL
   if (!is.na(comp_map$agg[1])) {
     temp_betas <- pars$b2_jg
     for (i in seq_len(nrow(comp_map))) {
@@ -345,7 +379,7 @@ gen_tmb_composition <- function(comp_dat) {
     comp_map_pos <- which(is.na(as.vector(temp_betas)))
     b2_jg_map <- seq_along(pars$b2_jg)
     b2_jg_map[comp_map_pos] <- NA
-    tmb_map <- list(b2_jg = as.factor(b2_jg_map))
+    tmb_map <- c(tmb_map, list(b2_jg = as.factor(b2_jg_map)))
   }
   
   list(
