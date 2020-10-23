@@ -4,12 +4,23 @@
 \alias{fit_stockseason}
 \title{Fit model}
 \usage{
-fit_stockseason(catch_dat, comp_dat, silent = FALSE, nlminb_loops = 1)
+fit_stockseason(
+  comp_dat,
+  catch_dat = NULL,
+  model_type = c("composition", "integrated"),
+  random_walk = TRUE,
+  silent = FALSE,
+  nlminb_loops = 1
+)
 }
 \arguments{
-\item{catch_dat}{Description here}
+\item{comp_dat}{Composition data}
 
-\item{comp_dat}{Description here}
+\item{catch_dat}{Catch data}
+
+\item{model_type}{Model type}
+
+\item{random_walk}{Random walk or IID intercepts by year?}
 
 \item{silent}{Logical}
 
@@ -26,5 +37,5 @@ Fit model
 }
 \examples{
 # FIXME: make smaller/faster for example:
-m <- fit_stockseason(catch_dat, comp_dat)
+m <- fit_stockseason(catch_ex, comp_ex)
 }

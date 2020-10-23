@@ -23,7 +23,7 @@
 #'
 #' @examples
 #' # FIXME: make smaller/faster for example:
-#' m <- fit_stockseason(catch_dat, comp_dat)
+#' m <- fit_stockseason(catch_ex, comp_ex)
 
 fit_stockseason <- function(comp_dat, catch_dat = NULL,
                             model_type = c("composition", "integrated"), 
