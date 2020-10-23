@@ -9,7 +9,7 @@ fit_stockseason(
   catch_dat = NULL,
   model_type = c("composition", "integrated"),
   random_walk = TRUE,
-  silent = FALSE,
+  silent = TRUE,
   nlminb_loops = 1
 )
 }
@@ -37,5 +37,9 @@ Fit model
 }
 \examples{
 m1 <- fit_stockseason(comp_ex, model_type = "composition")
+theta <- as.list(m1, "Estimate")
+theta_se <- as.list(m1, "Std. Error")
+theta
+
 m2 <- fit_stockseason(comp_ex, catch_ex, model_type = "integrated")
 }
