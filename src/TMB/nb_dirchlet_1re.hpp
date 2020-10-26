@@ -170,7 +170,6 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     
     // Calculate predicted abundance based on higher level groupings
     int n_preds = pred_factor2k_h.size();
-    int n_pred_levels = pred_factor2k_levels.size();
     vector<Type> agg_pred_abund(n_pred_levels);
     vector<Type> log_agg_pred_abund(n_pred_levels);
     
