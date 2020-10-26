@@ -2,6 +2,7 @@
 
 export("%>%")
 export(fit_stockseason)
+export(gen_tmb)
 importFrom(dplyr,arrange)
 importFrom(dplyr,distinct)
 importFrom(dplyr,filter)
