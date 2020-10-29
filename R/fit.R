@@ -33,6 +33,7 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
                             model_type = c("composition", "integrated"), 
                             random_walk = TRUE,
                             silent = TRUE, 
+                            optim_fix_inits = TRUE,
                             nlminb_loops = 1) {
   
   model_type <- match.arg(model_type)
@@ -66,21 +67,28 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
     )
   }
   
-  if (!silent) cat("Optimizing for fixed effects\n")
-  obj1 <- TMB::MakeADFun(
-    data = c(list(model = "nb_dirchlet_1re"), x$data),
-    parameters = x$pars,
-    map = tmb_map1,
-    DLL = "stockseasonr_TMBExports", silent = silent
-  )
-  opt1 <- stats::nlminb(obj1$par, obj1$fn, obj1$gr,
-    control = list(eval.max = 1e4, iter.max = 1e4)
-  )
+  #by default optimize for fixed effects first
+  if (optim_fix_inits == TRUE) {
+    if (!silent) cat("Optimizing for fixed effects\n")
+    obj1 <- TMB::MakeADFun(
+      data = c(list(model = "nb_dirchlet_1re"), x$data),
+      parameters = x$pars,
+      map = tmb_map1,
+      DLL = "stockseasonr_TMBExports", silent = silent
+    )
+    opt1 <- stats::nlminb(obj1$par, obj1$fn, obj1$gr,
+                          control = list(eval.max = 1e4, iter.max = 1e4)
+    )
+  }
 
+  #use pars from optimizing for fixed effects as inits unless specified 
+  #otherwise
+  pars_in <- if (optim_fix_inits == TRUE) obj1$env$parList(opt1$par) else x$pars
+  
   if (!silent) cat("Fitting fixed and random effects\n")
   obj <- TMB::MakeADFun(
     data = c(list(model = "nb_dirchlet_1re"), x$data),
-    parameters = obj1$env$parList(opt1$par),
+    parameters = pars_in,#obj1$env$parList(opt1$par),
     map = x$tmb_map,
     random = random_ints,
     DLL = "stockseasonr_TMBExports", silent = silent
