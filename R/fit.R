@@ -55,7 +55,7 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
         log_sigma_zk2 = as.factor(NA)
       )
     )
-  } else {
+  } else if (model_type == "composition") {
     x <- gen_tmb(comp_dat = comp_dat, random_walk, model_type = model_type)
     random_ints <- "z2_k"
     tmb_map1 <- c(
@@ -80,7 +80,7 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
                           control = list(eval.max = 1e4, iter.max = 1e4)
     )
   }
-
+  
   #use pars from optimizing for fixed effects as inits unless specified 
   #otherwise
   pars_in <- if (optim_fix_inits == TRUE) obj1$env$parList(opt1$par) else x$pars
