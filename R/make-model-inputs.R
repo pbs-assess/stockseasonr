@@ -1,13 +1,17 @@
 #' Prep TMB inputs
 #'
-#' @param comp_dat Composition data
+#' @param comp_dat Composition dataframe; each row represents a sampling event 
+#'   (e.g. genetic samples collected from a given day and region).
 #' @param catch_dat Catch data
-#' @param model_type Model type
-#' @param random_walk Random walk or IID intercepts by year?
+#' @param model_type Character specifying whether inputs for a composition-only
+#'   or integrated model are being generated.
+#' @param random_walk Logical (defaults to TRUE) specifying whether random 
+#'   intercepts for year follow a random walk or are independent and identically 
+#'   distributed. 
 #'
 #' @return
 #' List of inputs (data and parameter lists) to pass to TMB and dataframes to 
-#' use in subsequent plotting
+#'   use in subsequent plotting.
 #' @export
 #' 
 #' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
@@ -75,8 +79,8 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
       )
     }
     
-    # list of strata from composition dataset to retain in catch predictive model
-    # to ensure aggregate abundance can be calculated
+    # list of strata from composition dataset to retain in catch predictive 
+    # model to ensure aggregate abundance can be calculated
     comp_strata <- unique(paste(pred_dat$month_n, pred_dat$region, sep = "_"))
     
     # make predictive model matrix including null values for effort
@@ -298,10 +302,10 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
     # input parameter initial values
     pars <- list(
       #fake abundance parameters to feed to template
-      b1_j = rep(1, length = 2),
-      log_phi = log(1.5),
-      z1_k = rep(1, length = 2),
-      log_sigma_zk1 = log(0.25),
+      b1_j = rep(0, length = 2),
+      log_phi = 0,
+      z1_k = rep(0, length = 2),
+      log_sigma_zk1 = 0,
       # composition parameters
       b2_jg = matrix(0,#runif(ncol(fix_mm_comp) * ncol(obs_comp), 0.1, 0.9),
                      nrow = ncol(fix_mm_comp),

@@ -2,8 +2,11 @@
 #'
 #' @param comp_dat Composition data
 #' @param catch_dat Catch data
-#' @param model_type Model type
-#' @param random_walk Random walk or IID intercepts by year?
+#' @param model_type Character specifying whether inputs for a composition-only
+#'   or integrated model are being generated.
+#' @param random_walk Logical (defaults to TRUE) specifying whether random 
+#'   intercepts for year follow a random walk or are independent and identically 
+#'   distributed. 
 #' @param silent Logical
 #' @param nlminb_loops How many times to run [stats::nlminb()] optimization.
 #'   Sometimes restarting the optimizer at the previous best values aids
@@ -37,7 +40,7 @@ fit_stockseason <- function(comp_dat, catch_dat = NULL,
                             nlminb_loops = 1) {
   
   model_type <- match.arg(model_type)
-  #define model type (by default composition only)
+  #define model type
   if (model_type == "integrated" && is.null(catch_dat)) {
     stop("Cannot fit integrated model without catch data", call. = FALSE)
   }
