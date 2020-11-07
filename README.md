@@ -20,4 +20,4 @@ remotes::install_github("pbs-assess/stockseasonr")
 
 ## Summary 
 
-*stockseasonr* is intended to generate seasonal predictions of stock composition and stock-specific abundance using spatially-stratified data. Currently interannual variation is accounted for using random intercepts. Model matrices are generated using *mgcv* and models are fit using *TMB*.
+Mixed-stock fisheries are common, requiring biologists to account for stock composition when describing distributions or abundance. In the case of migratory populations (e.g., salmon) the contribution of different stocks can change seasonally. stockseasonr is intended to generate seasonal predictions of stock composition and stock-specific abundance using spatially-stratified data. Currently interannual variation is accounted for using random intercepts. Briefly, it uses splines implemented in mgcv to account for seasonal effects, then fits a model in TMB assuming composition data follow a Dirichlet-multinomial distribution and catch data follow a negative binomial distribution. 
