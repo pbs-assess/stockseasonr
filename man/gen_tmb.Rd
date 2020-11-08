@@ -2,7 +2,7 @@
 % Please edit documentation in R/make-model-inputs.R
 \name{gen_tmb}
 \alias{gen_tmb}
-\title{Prep TMB inputs}
+\title{Prepare TMB inputs}
 \usage{
 gen_tmb(
   comp_dat,
@@ -12,20 +12,24 @@ gen_tmb(
 )
 }
 \arguments{
-\item{comp_dat}{Composition data}
+\item{comp_dat}{Composition dataframe; each row represents a sampling event
+(e.g. genetic samples collected from a given day and region).}
 
 \item{catch_dat}{Catch data}
 
-\item{model_type}{Model type}
+\item{model_type}{Character specifying whether inputs for a composition-only
+or integrated model are being generated.}
 
-\item{random_walk}{Random walk or IID intercepts by year?}
+\item{random_walk}{Logical (defaults to TRUE) specifying whether random
+intercepts for year follow a random walk or are independent and identically
+distributed.}
 }
 \value{
 List of inputs (data and parameter lists) to pass to TMB and dataframes to
-use in subsequent plotting
+use in subsequent plotting.
 }
 \description{
-Prep TMB inputs
+Prepare TMB inputs
 }
 \examples{
 dat_list <- gen_tmb(catch_ex, comp_ex, model_type = "integrated")

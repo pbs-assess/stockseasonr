@@ -10,6 +10,7 @@ fit_stockseason(
   model_type = c("composition", "integrated"),
   random_walk = TRUE,
   silent = TRUE,
+  optim_fix_inits = TRUE,
   nlminb_loops = 1
 )
 }
@@ -18,9 +19,12 @@ fit_stockseason(
 
 \item{catch_dat}{Catch data}
 
-\item{model_type}{Model type}
+\item{model_type}{Character specifying whether inputs for a composition-only
+or integrated model are being generated.}
 
-\item{random_walk}{Random walk or IID intercepts by year?}
+\item{random_walk}{Logical (defaults to TRUE) specifying whether random
+intercepts for year follow a random walk or are independent and identically
+distributed.}
 
 \item{silent}{Logical}
 

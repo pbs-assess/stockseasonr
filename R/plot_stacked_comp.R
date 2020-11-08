@@ -13,17 +13,20 @@
 #' @export
 #' 
 #' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
-#' @importFrom ggplot2 aes geom_area scale_fill_manual scale_colour_manual labs
-#' @importFrom ggplot2 theme scale_x_continuous facet_wrap coord_cartesian
+#' @importFrom ggplot2 ggplot aes geom_area scale_fill_manual 
+#' @importFrom ggplot2 scale_colour_manual labs theme scale_x_continuous 
+#' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
 #'
 #' @examples
 #' in1 <- gen_tmb(comp_dat = comp_ex, model_type = "composition")
+#' # model fitting will take several seconds
 #' m1 <- fit_stockseason(comp_ex, model_type = "composition")
 #' stacked_comp_plot(comp_dat = comp_ex, pred_dat_comp = in1$pred_dat_comp,
 #'                   mod_fit = m1)
 #' 
 
 stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
+  
   # summarize predictions
   ssdr <- summary(mod_fit)
   comp_pred <- ssdr[rownames(ssdr) %in% "inv_logit_pred_pi_prop", ]
@@ -56,7 +59,7 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
     labs(y = "Predicted Stock Composition", x = "Month") +
     ggsidekick::theme_sleek() +
     theme(legend.position = "right",
-          axis.text=element_text(size=9),
+          axis.text = element_text(size=9),
           plot.margin = unit(c(2.5, 11.5, 5.5, 5.5), "points")
     ) +
     scale_x_continuous(breaks = seq(min(dum2$month_n), max(dum2$month_n), 
