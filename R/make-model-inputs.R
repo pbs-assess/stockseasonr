@@ -1,4 +1,4 @@
-#' Prep TMB inputs
+#' Prepare TMB inputs
 #'
 #' @param comp_dat Composition dataframe; each row represents a sampling event 
 #'   (e.g. genetic samples collected from a given day and region).
@@ -46,8 +46,8 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
     spline_type <- if (max(months1) == 12) "cc" else "tp"
     n_knots <- if (max(months1) == 12) 4 else 3
     
-    m1 <- mgcv::gam(catch ~
-                      area + s(month_n, bs = spline_type, k = n_knots, by = area) + offset,
+    m1 <- mgcv::gam(catch ~ area + s(month_n, bs = spline_type, k = n_knots, 
+                                     by = area) + offset,
                     data = catch_dat,
                     family = mgcv::nb()
     )
@@ -58,26 +58,17 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
     
     # generic data frame that is skeleton for both comp and catch predictions
     # conditional allows different regions to have different ranges of months
-    if (comp_dat$gear[1] == "sport") {
-      pred_dat <- group_split(comp_dat, region) %>%
-        map_dfr(., function(x) {
-          expand.grid(
-            month_n = seq(min(x$month_n),
-                          max(x$month_n),
-                          by = 0.1
-            ),
-            region = unique(x$region)
-          )
-        })
-    } else {
-      pred_dat <- expand.grid(
-        month_n = seq(min(comp_dat$month_n),
-                      max(comp_dat$month_n),
-                      by = 0.1
-        ),
-        region = unique(comp_dat$region)
-      )
-    }
+    pred_dat <- group_split(comp_dat, region) %>%
+      map_dfr(., function(x) {
+        expand.grid(
+          month_n = seq(min(x$month_n),
+                        max(x$month_n),
+                        by = 0.1
+          ),
+          region = unique(x$region)
+        )
+      })
+    
     
     # list of strata from composition dataset to retain in catch predictive 
     # model to ensure aggregate abundance can be calculated
@@ -103,7 +94,7 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
       mutate(
         month = as.factor(month_n),
         order = row_number(),
-        reg_month = paste(region, month, sep = "_"),
+        reg_month = paste(region, month_n, sep = "_"),
         reg_month_f = fct_reorder(factor(reg_month), order)
       ) %>%
       select(-order, -reg_month, -strata) %>%
@@ -238,33 +229,21 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
     
     # generic data frame that is skeleton for predictions
     # conditional allows different regions to have different ranges of months
-    if (comp_dat$gear[1] == "sport") {
-      pred_dat <- group_split(comp_dat, region) %>%
-        map_dfr(., function(x) {
-          expand.grid(
-            month_n = seq(min(x$month_n),
-                          max(x$month_n),
-                          by = 0.1
-            ),
-            region = unique(x$region)
-          )
-        })
-    } else {
-      pred_dat <- expand.grid(
-        month_n = seq(min(comp_dat$month_n),
-                      max(comp_dat$month_n),
-                      by = 0.1
-        ),
-        region = unique(comp_dat$region)
-      )
-    }
+    pred_dat <- expand.grid(
+      month_n = seq(min(comp_dat$month_n),
+                    max(comp_dat$month_n),
+                    by = 0.1
+      ),
+      region = unique(comp_dat$region)
+    )
     
     months2 <- unique(gsi_wide$month_n)
     spline_type <- if (max(months2) == 12) "cc" else "tp"
     n_knots <- if (max(months2) == 12) 4 else 3
     # response variable doesn't matter, since not fit
     m2 <- mgcv::gam(rep(0, length.out = nrow(gsi_wide)) ~
-                      region + s(month_n, bs = spline_type, k = n_knots, by = region),
+                      region + s(month_n, bs = spline_type, k = n_knots, 
+                                 by = region),
                     data = gsi_wide
     )
     fix_mm_comp <- predict(m2, type = "lpmatrix")
