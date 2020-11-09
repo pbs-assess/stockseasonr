@@ -17,21 +17,21 @@ knitr::opts_chunk$set(
 ```
 
 ```{r packages, echo = FALSE, message = FALSE}
-library(dplyr)
+library(tidyverse)
 library(stockseasonr)
 ```
 
-Although `fit_stockseason()` automatically generates the necessary data and parameters to pass to TMB, the `gen_tmb()` function can be used to generate these, and other, objects externally which are useful for data visualization and to understand the data pre-processing.
+Spatially-explicit, seasonal changes in stock composition and abundance can be estimated using `fit_stockseason()`. Although `fit_stockseason()` automatically generates the necessary data and parameters to pass to TMB, the `gen_tmb()` function can be used to generate these, and other, objects externally which are useful for data visualization and to understand the data pre-processing.
 
-We'll  generate inputs for an integrated version of the model. We'll use two built-in datasets. The first is example composition data, which is a subsample of available genetic stock identification data from the west coast Vancouver Island commercial fishery. `comp_ex` is a long dataframe where each row includes the number of samples within an event that correspond to a given stock aggregate (i.e. summed individual assignment probabilities). Each sampling event is spatially and temporally explicit because it is assigned to a given region, month, and year.
+We'll generate inputs for an integrated version of the model using two built-in datasets. The first is example composition data, which is a subsample of available genetic stock identification data from the west coast Vancouver Island commercial Chinook salmon fishery. `comp_ex` is a long dataframe where each row includes the number of samples within an event that correspond to a given stock aggregate (i.e. summed individual assignment probabilities). Each sampling event is spatially and temporally explicit because it is assigned to a given region, month, and year.
 
-The second is example catch and effort data, which are available at a finer scale (statistical areas) than the composition data. `catch_ex` is a long dataframe where each row represents the observed catch (individual pieces) and effort (boat days) for a given statistical area, month, and year. The offset variable is log(effort).
+The second is example catch and effort data from the same fishery and which are available at a finer scale (statistical areas) than the composition data. `catch_ex` is a long dataframe where each row represents the observed catch (individual pieces) and effort (boat days) for a given statistical area, month, and year. The offset variable is log(effort).
 
 ```{r echo=TRUE}
 dat_in <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, model_type = "integrated")
 ```
 
-`gen_tmb` widens the stock composition data, then infills zero observations for a given stock with small values (0.00001) to ensure model convergence. It next uses `mgcv` to create model matrices including region-specific seasonal splines and random intercepts for years. It also creates dataframes used for prediction based on the regions and months included in the input data, which is used to generate an equivalent model matrix for predictions. Since abundance predictions are generated using observed catches and composition predictions are generated using observed genetically stock identified samples, there are model matrices and predictive dataframes for each of the two model components. The result is a list of six elements:
+`gen_tmb` widens the stock composition data, then infills zero observations for a given stock with small values (0.00001) to ensure model convergence. It next uses `mgcv` to create model matrices including region-specific seasonal splines and random intercepts for years. It also creates dataframes used for prediction based on the regions and months included in the input data, as well as model matrices for prediction. Since abundance predictions are generated using observed catches and composition predictions are generated using observed genetically stock identified samples, there are model matrices and predictive dataframes for each of the two model components. The result is a list of six elements:
 
 - `data` list of data inputs (observations, model matrices, etc.) passed to the TMB model
 - `pars` list of initial parameter values passed to the TMB model; note that these include parameters relevant to the catch component of the model, but they are not used if `model_type = "composition"`
@@ -40,4 +40,51 @@ dat_in <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, model_type = "integr
 - `pred_dat_comp` a dataframe that can be paired with the outputs of `fit_stockseason` to display fixed effect predictions for composition data
 - `tmb_map` mapped parameters that are not estimated; these may include fixed effect parameters that are not observed and, if `model_type = "composition"`, parameters for the catch component of the model 
 
+Next we'll fit the model using `fit_stockseason`, specifying the input composition data, catch data, and model type (`composition` or `integrated`) as above. Additionally we'll specify that random intercepts associated with each year should be estimated assuming temporal autocorrelated error (`random_walk = TRUE`). Note that the model may take several seconds to converge.
+
+```{r echo = TRUE}
+m1 <- fit_stockseason(comp_dat = comp_ex, catch_dat = catch_ex, model_type = "integrated", random_walk = TRUE)
+```
+
+`m1` is a `TMB::sdreport` object including parameter estimates, and their standard errors, for the abundance and composition components of the model. 
+
+```{r echo = TRUE}
+theta <- as.list(m1, "Estimate")
+
+# abundance parameter estimates
+theta$b1_j
+#composition parameter estimates
+theta$b2_jg
+```
+
+Fixed effects predictions, which are calculated by integrating over random intercepts within TMB, can also be extracted. Note that all predictions are provided in link space.
+
+```{r echo = TRUE}
+ssdr <- summary(m1)
+unique(rownames(ssdr))
+
+# predicted total abundance at spatial scale of catch input data (finer scale)
+head(ssdr[rownames(ssdr) %in% "log_pred_abund", ])
+# predicted total abundance at at spatial scale of composition input data 
+# (coarser scale)
+head(ssdr[rownames(ssdr) %in% "log_reg_pred_abund", ])
+# predicted stock composition estimates 
+head(ssdr[rownames(ssdr) %in% "inv_logit_pred_pi_prop", ])
+# predicted stock specific abundance 
+head(ssdr[rownames(ssdr) %in% "log_pred_abund_mg", ])
+```
+
+stockseasonr includes built in plotting functions as example visualizations for predictions. Both combine predictions generated within TMB with predictive dataframes created by `gen_tmb`. For example, predictions of seasonal trends in mean stock composition can be visualized with `stacked_comp_plot`. 
+
+```{r echo=TRUE}
+stacked_comp_plot(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
+                  mod_fit = m1)
+```
+
+Estimates of stock-specific abundance can be used with the same inputs and `ribbon_abund_plot`.
+
+```{r echo=TRUE}
+ribbon_abund_plot(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
+                  mod_fit = m1)
+```
 
