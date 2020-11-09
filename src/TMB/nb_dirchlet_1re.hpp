@@ -171,13 +171,13 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     // Calculate predicted abundance based on higher level groupings
     int n_preds = pred_factor2k_h.size();
     vector<Type> agg_pred_abund(n_pred_levels);
-    vector<Type> log_agg_pred_abund(n_pred_levels);
+    vector<Type> log_reg_pred_abund(n_pred_levels);
     
     for (int h = 0; h < n_preds; h++) {
       for (int m = 0; m < n_pred_levels; m++) {
         if (pred_factor2k_h(h) == pred_factor2k_levels(m)) {
           agg_pred_abund(m) += pred_abund(h);
-          log_agg_pred_abund(m) = log(agg_pred_abund(m));
+          log_reg_pred_abund(m) = log(agg_pred_abund(m));
         }
       }
     }
@@ -194,7 +194,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     
     // Report
     ADREPORT(log_pred_abund);
-    ADREPORT(log_agg_pred_abund);
+    ADREPORT(log_reg_pred_abund);
     ADREPORT(log_pred_abund_mg);
   }
   
