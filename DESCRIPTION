@@ -16,6 +16,7 @@ Imports:
     TMB,
     magrittr,
     mgcv,
+    ggplot2,
     tidyr,
     dplyr,
     forcats,
