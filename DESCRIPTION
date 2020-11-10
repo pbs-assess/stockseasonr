@@ -27,7 +27,8 @@ Suggests:
 LinkingTo: 
     TMB
 Remotes:
-    seananderson/ggsidekick
+    seananderson/ggsidekick,
+    nsgrantham/disco
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
