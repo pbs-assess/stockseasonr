@@ -23,7 +23,7 @@
 #' @importFrom tidyr complete nesting pivot_wider replace_na
 #' @importFrom stats coef predict rnorm runif
 #' @importFrom purrr map_dfr
-#' @importFrom stats qnorm
+#' @importFrom stats qnorm plogis
 #'
 #' @examples
 #' m1 <- fit_stockseason(comp_ex, model_type = "composition")
