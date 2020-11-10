@@ -13,8 +13,8 @@
 #' @export
 #' 
 #' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_manual 
-#' @importFrom ggplot2 scale_colour_manual labs theme scale_x_continuous 
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_brewer 
+#' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
 #'
 #' @examples
@@ -48,15 +48,13 @@ ribbon_abund_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
       comp_abund_up = exp(link_abund_est + (qnorm(0.975) * link_abund_se))
     ) 
   
-  pal <- disco::disco(palette = "bright", n = length(unique(comp_dat$region)))
-  
   ggplot(data = dum2, aes(x = month_n)) +
     geom_line(aes(y = comp_abund_est, colour = region)) +
     geom_ribbon(aes(ymin = comp_abund_low, ymax = comp_abund_up, 
                     fill = region), 
                 alpha = 0.5) +
-    scale_fill_manual(name = "Region", values = pal) +
-    scale_colour_manual(name = "Region", values = pal) +
+    scale_fill_brewer(name = "Region", palette = "Dark2") +
+    scale_colour_brewer(name = "Region", palette = "Dark2") +
     labs(y = "Predicted Catch", x = "Month") +
     facet_wrap(~ stock, scales = "free_y") +
     ggsidekick::theme_sleek() +

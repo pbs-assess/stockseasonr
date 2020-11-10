@@ -13,8 +13,8 @@
 #' @export
 #' 
 #' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
-#' @importFrom ggplot2 ggplot aes geom_area scale_fill_manual 
-#' @importFrom ggplot2 scale_colour_manual labs theme scale_x_continuous 
+#' @importFrom ggplot2 ggplot aes geom_area scale_fill_brewer 
+#' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
 #'
 #' @examples
@@ -46,14 +46,12 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
       pred_prob_up = plogis(link_prob_est + (qnorm(0.975) * link_prob_se))
     ) 
   
-  stock_pal <- disco::disco("sunset", n = length(unique(dum2$stock)))
-  
   #generate plot
   ggplot(data = dum2, aes(x = month_n)) +
     geom_area(aes(y = pred_prob_est, colour = stock, fill = stock), 
               stat = "identity") +
-    scale_fill_manual(name = "Stock", values = stock_pal) +
-    scale_colour_manual(name = "Stock", values = stock_pal) +
+    scale_fill_brewer(name = "Stock", palette = "Spectral") +
+    scale_colour_brewer(name = "Stock", palette = "Spectral") +
     labs(y = "Predicted Stock Composition", x = "Month") +
     ggsidekick::theme_sleek() +
     theme(legend.position = "right",
