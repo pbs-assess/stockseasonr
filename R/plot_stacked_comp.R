@@ -41,11 +41,9 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
   ) %>% 
     cbind(dum, .) %>%
     mutate(
-      pred_prob_est = car::logit(link_prob_est),
-      pred_prob_low = pmax(0,
-                           car::logit(link_prob_est + (qnorm(0.025) *
-                                                         link_prob_se))),
-      pred_prob_up = car::logit(link_prob_est + (qnorm(0.975) * link_prob_se))
+      pred_prob_est = plogis(link_prob_est),
+      pred_prob_low = pmax(0, plogis(link_prob_est + (qnorm(0.025) * link_prob_se))),
+      pred_prob_up = plogis(link_prob_est + (qnorm(0.975) * link_prob_se))
     ) 
   
   stock_pal <- disco::disco("sunset", n = length(unique(dum2$stock)))
