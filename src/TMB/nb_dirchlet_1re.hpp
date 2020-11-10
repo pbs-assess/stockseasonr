@@ -17,7 +17,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   DATA_IVECTOR(factor1k_i);
   DATA_INTEGER(nk1);
   DATA_MATRIX(X1_pred_ij);
-  // vector of higher level aggregates used to generate predictions; length
+  // vector of higher level regions used to generate predictions; length
   // is equal to the number of predictions made
   DATA_IVECTOR(pred_factor2k_h);
   DATA_IVECTOR(pred_factor2k_levels);
@@ -170,14 +170,14 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     
     // Calculate predicted abundance based on higher level groupings
     int n_preds = pred_factor2k_h.size();
-    vector<Type> agg_pred_abund(n_pred_levels);
+    vector<Type> reg_pred_abund(n_pred_levels);
     vector<Type> log_reg_pred_abund(n_pred_levels);
     
     for (int h = 0; h < n_preds; h++) {
       for (int m = 0; m < n_pred_levels; m++) {
         if (pred_factor2k_h(h) == pred_factor2k_levels(m)) {
-          agg_pred_abund(m) += pred_abund(h);
-          log_reg_pred_abund(m) = log(agg_pred_abund(m));
+          reg_pred_abund(m) += pred_abund(h);
+          log_reg_pred_abund(m) = log(reg_pred_abund(m));
         }
       }
     }
@@ -187,7 +187,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
     
     for (int m = 0; m < n_pred_levels; ++m) {
       for (int k = 0; k < n_cat; ++k) {
-        pred_abund_mg(m, k) = agg_pred_abund(m) * pred_pi_prop(m, k);
+        pred_abund_mg(m, k) = reg_pred_abund(m) * pred_pi_prop(m, k);
       }
     }
     matrix<Type> log_pred_abund_mg = log(pred_abund_mg.array());
