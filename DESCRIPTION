@@ -1,17 +1,29 @@
 Package: stockseasonr
-Title: What the Package Does (One Line, Title Case)
+Title: Seasonal Predictions of Stock Composition and Abundance
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R: c( 
     person(given = "Cameron",
            family = "Freshwater",
            role = c("aut", "cre"),
-           email = "valid@email.com")
-Description: What the package does (one paragraph).
+           email = "cameron.freshwater@dfo-mpo.gc.ca"),
+    person(given = "Sean",
+	   family = "Anderson",
+	   role = c("aut", "cre"),
+           email = "sean.anderson@dfo-mpo.gc.ca"))
+Description: An integrated model for estimating seasonal changes in abundance 
+    and stock composition. Designed and tested using fisheries data, estimates
+    of total abundance assume a negative binomial distribution while composition
+    estimates assume a Dirichlet-multinomial. Stock-specific abundance is 
+    calculated as the product of predicted total abundance and the probability 
+    of encountering a given stock in a sample. Seasonal effects are estimated 
+    using splines, which are allowed to vary among regions. Interannual 
+    variation is accounted for using random intercepts. Splines are generated 
+    using mgcv and the full model is fit in TMB. Also includes basic plotting
+    functions.
 License: GPL (>= 2)
 Depends: 
     R (>= 2.10)
 Imports: 
-    disco,
     dplyr,
     forcats,
     ggplot2,
@@ -27,8 +39,7 @@ Suggests:
 LinkingTo: 
     TMB
 Remotes:
-    seananderson/ggsidekick,
-    nsgrantham/disco
+    seananderson/ggsidekick
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

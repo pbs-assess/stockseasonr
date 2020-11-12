@@ -69,7 +69,7 @@ head(ssdr[rownames(ssdr) %in% "log_pred_abund", ])
 # (coarser scale)
 head(ssdr[rownames(ssdr) %in% "log_reg_pred_abund", ])
 # predicted stock composition estimates
-head(ssdr[rownames(ssdr) %in% "inv_logit_pred_pi_prop", ])
+head(ssdr[rownames(ssdr) %in% "logit_pred_pi_prop", ])
 # predicted stock specific abundance
 head(ssdr[rownames(ssdr) %in% "log_pred_abund_mg", ])
 ```
