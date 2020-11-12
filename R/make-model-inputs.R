@@ -229,13 +229,16 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
     
     # generic data frame that is skeleton for predictions
     # conditional allows different regions to have different ranges of months
-    pred_dat <- expand.grid(
-      month_n = seq(min(comp_dat$month_n),
-                    max(comp_dat$month_n),
-                    by = 0.1
-      ),
-      region = unique(comp_dat$region)
-    )
+    pred_dat <- group_split(comp_dat, region) %>%
+      map_dfr(., function(x) {
+        expand.grid(
+          month_n = seq(min(x$month_n),
+                        max(x$month_n),
+                        by = 0.1
+          ),
+          region = unique(x$region)
+        )
+      })
     
     months2 <- unique(gsi_wide$month_n)
     spline_type <- if (max(months2) == 12) "cc" else "tp"
