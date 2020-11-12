@@ -141,7 +141,7 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   matrix<Type> pred_pi(n_pred_levels, n_cat);      // predicted counts in real 
   vector<Type> pred_n_plus(n_pred_levels); 
   matrix<Type> pred_pi_prop(n_pred_levels, n_cat); // predicted counts as ppn.
-  matrix<Type> inv_logit_pred_pi_prop(n_pred_levels, n_cat); // pred. ppn link
+  matrix<Type> logit_pred_pi_prop(n_pred_levels, n_cat); // pred. ppn link 
   
   pred_eff = X2_pred_ij * b2_jg; 
   pred_gamma = exp(pred_eff.array());
@@ -156,11 +156,11 @@ Type nb_dirchlet_1re(objective_function<Type>* obj) {
   for (int m = 0; m < n_pred_levels; m++) {
     for (int k = 0; k < n_cat; k++) {
       pred_pi_prop(m, k) = pred_pi(m, k) / pred_n_plus(m);
-      inv_logit_pred_pi_prop(m, k) = invlogit(pred_pi_prop(m, k));
+      logit_pred_pi_prop(m, k) = logit(pred_pi_prop(m, k));
     }
   }
   
-  ADREPORT(inv_logit_pred_pi_prop);
+  ADREPORT(logit_pred_pi_prop);
   
   if (abundance_component) {
     // Abundance predictions 

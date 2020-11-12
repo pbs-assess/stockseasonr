@@ -29,7 +29,7 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
   
   # summarize predictions
   ssdr <- summary(mod_fit)
-  comp_pred <- ssdr[rownames(ssdr) %in% "inv_logit_pred_pi_prop", ]
+  comp_pred <- ssdr[rownames(ssdr) %in% "logit_pred_pi_prop", ]
   stk_names <- unique(comp_dat$agg)
   dum <- purrr::map_dfr(seq_along(stk_names), ~ pred_dat_comp)
   
@@ -42,7 +42,7 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
     cbind(dum, .) %>%
     mutate(
       pred_prob_est = plogis(link_prob_est),
-      pred_prob_low = pmax(0, plogis(link_prob_est + (qnorm(0.025) * link_prob_se))),
+      pred_prob_low = plogis(link_prob_est + (qnorm(0.025) * link_prob_se)),
       pred_prob_up = plogis(link_prob_est + (qnorm(0.975) * link_prob_se))
     ) 
   
