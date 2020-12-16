@@ -194,7 +194,7 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
         for (j in seq_len(ncol(fix_mm_comp))) {
           for (k in seq_len(ncol(obs_comp))) {
             if (j %in% offset_region_pos & k %in% offset_stock_pos) {
-              pars$b2_jg[j, k] <- 0.00001
+              # pars$b2_jg[j, k] <- 0.00001
               temp_betas[j, k] <- NA
             }
           }
@@ -320,7 +320,7 @@ gen_tmb <- function(comp_dat, catch_dat = NULL,
         for (j in seq_len(ncol(fix_mm_comp))) {
           for (k in seq_len(ncol(obs_comp))) {
             if (j %in% offset_region_pos & k %in% offset_stock_pos) {
-              pars$b2_jg[j, k] <- 0.00001
+              # pars$b2_jg[j, k] <- 0.00001
               temp_betas[j, k] <- NA
             }
           }
