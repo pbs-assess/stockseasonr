@@ -52,8 +52,8 @@ plot_ribbon_abund <- function(comp_dat, pred_dat_comp, mod_fit) {
                             (qnorm(0.975) * .data$link_abund_se))
     ) %>% 
     ggplot(., aes(x = month_n)) +
-    geom_line(aes(y = comp_abund_est, colour = region)) +
-    geom_ribbon(aes(ymin = comp_abund_low, ymax = comp_abund_up, 
+    geom_line(aes(y = .data$comp_abund_est, colour = region)) +
+    geom_ribbon(aes(ymin = .data$comp_abund_low, ymax = .data$comp_abund_up, 
                     fill = region), 
                 alpha = 0.5) +
     scale_fill_brewer(name = "Region", palette = "Dark2") +
