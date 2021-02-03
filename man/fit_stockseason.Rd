@@ -40,10 +40,11 @@ Output from \code{\link[TMB:sdreport]{TMB::sdreport()}}
 Fit model
 }
 \examples{
-m1 <- fit_stockseason(comp_ex, model_type = "composition")
+m1 <- fit_stockseason(comp_dat = comp_ex, model_type = "composition")
 theta <- as.list(m1, "Estimate")
 theta_se <- as.list(m1, "Std. Error")
 theta
 
-m2 <- fit_stockseason(comp_ex, catch_ex, model_type = "integrated")
+m2 <- fit_stockseason(comp_dat = comp_ex, catch_dat = catch_ex, 
+                      model_type = "integrated")
 }

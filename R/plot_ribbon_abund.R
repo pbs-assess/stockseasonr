@@ -15,19 +15,20 @@
 #' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_brewer 
 #' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
-#' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
+#' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit 
+#' @importFrom ggplot2 theme_classic
 #'
 #' @examples
-#' in1 <- gen_tmb(comp_ex, catch_dat = catch_ex, 
+#' in1 <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, 
 #'                model_type = "integrated")
 #' # model fitting will take several seconds
-#' m1 <- fit_stockseason(comp_ex, catch_dat = catch_ex, 
+#' m1 <- fit_stockseason(comp_dat = comp_ex, catch_dat = catch_ex, 
 #'                       model_type = "integrated")
 #' plot_ribbon_abund(comp_dat = comp_ex, pred_dat_comp = in1$pred_dat_comp,
 #'                   mod_fit = m1)
 #' 
 
-ribbon_abund_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
+plot_ribbon_abund <- function(comp_dat, pred_dat_comp, mod_fit) {
   
   # summarize predictions
   ssdr <- summary(mod_fit)
@@ -57,7 +58,7 @@ ribbon_abund_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
     scale_colour_brewer(name = "Region", palette = "Dark2") +
     labs(y = "Predicted Catch", x = "Month") +
     facet_wrap(~ stock, scales = "free_y") +
-    ggsidekick::theme_sleek() +
+    theme_classic() +
     theme(legend.position = "top",
           axis.text = element_text(size=9),
           plot.margin = unit(c(5.5, 10.5, 5.5, 5.5), "points")) +

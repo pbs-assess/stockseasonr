@@ -16,16 +16,17 @@
 #' @importFrom ggplot2 ggplot aes geom_area scale_fill_brewer 
 #' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
+#' @importFrom ggplot2 theme_classic
 #'
 #' @examples
 #' in1 <- gen_tmb(comp_dat = comp_ex, model_type = "composition")
 #' # model fitting will take several seconds
-#' m1 <- fit_stockseason(comp_ex, model_type = "composition")
-#' stacked_comp_plot(comp_dat = comp_ex, pred_dat_comp = in1$pred_dat_comp,
+#' m1 <- fit_stockseason(comp_dat = comp_ex, model_type = "composition")
+#' plot_stacked_comp(comp_dat = comp_ex, pred_dat_comp = in1$pred_dat_comp,
 #'                   mod_fit = m1)
 #' 
 
-stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
+plot_stacked_comp <- function(comp_dat, pred_dat_comp, mod_fit) {
   
   # summarize predictions
   ssdr <- summary(mod_fit)
@@ -53,7 +54,7 @@ stacked_comp_plot <- function(comp_dat, pred_dat_comp, mod_fit) {
     scale_fill_brewer(name = "Stock", palette = "Spectral") +
     scale_colour_brewer(name = "Stock", palette = "Spectral") +
     labs(y = "Predicted Stock Composition", x = "Month") +
-    ggsidekick::theme_sleek() +
+    theme_classic() +
     theme(legend.position = "right",
           axis.text = element_text(size=9),
           plot.margin = unit(c(2.5, 11.5, 5.5, 5.5), "points")

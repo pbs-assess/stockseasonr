@@ -32,7 +32,8 @@ use in subsequent plotting.
 Prepare TMB inputs
 }
 \examples{
-dat_list <- gen_tmb(catch_ex, comp_ex, model_type = "integrated")
+dat_list <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, 
+                    model_type = "integrated")
 dat_list$data #data inputs for TMB
 dat_list$pars #parameter inputs for TMB
 }

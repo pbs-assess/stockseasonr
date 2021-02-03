@@ -4,12 +4,26 @@
 \name{stockseasonr-package}
 \alias{stockseasonr}
 \alias{stockseasonr-package}
-\title{stockseasonr: What the Package Does (One Line, Title Case)}
+\title{stockseasonr: Seasonal Predictions of Stock Composition and Abundance}
 \description{
-What the package does (one paragraph).
+An integrated model for estimating seasonal changes in abundance 
+    and stock composition. Designed and tested using fisheries data, estimates
+    of total abundance assume a negative binomial distribution while composition
+    estimates assume a Dirichlet-multinomial. Stock-specific abundance is 
+    calculated as the product of predicted total abundance and the probability 
+    of encountering a given stock in a sample. Seasonal effects are estimated 
+    using splines, which are allowed to vary among regions. Interannual 
+    variation is accounted for using random intercepts. Splines are generated 
+    using mgcv and the full model is fit in TMB. Also includes basic plotting
+    functions.
 }
 \author{
-\strong{Maintainer}: Cameron Freshwater \email{valid@email.com}
+\strong{Maintainer}: Cameron Freshwater \email{cameron.freshwater@dfo-mpo.gc.ca}
+
+Authors:
+\itemize{
+  \item Sean Anderson \email{sean.anderson@dfo-mpo.gc.ca}
+}
 
 }
 \keyword{internal}
