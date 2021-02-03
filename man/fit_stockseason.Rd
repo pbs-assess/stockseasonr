@@ -28,6 +28,10 @@ distributed.}
 
 \item{silent}{Logical}
 
+\item{optim_fix_inits}{Logical (defaults to TRUE) specifying that a
+fixed-effects only version of the model is fit first to generate initial
+parameters.}
+
 \item{nlminb_loops}{How many times to run \code{\link[stats:nlminb]{stats::nlminb()}} optimization.
 Sometimes restarting the optimizer at the previous best values aids
 convergence. If the maximum gradient is still too large,

@@ -3,7 +3,7 @@ title: "Introduction to stockseasonr"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to stockseasonr}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -17,7 +17,6 @@ knitr::opts_chunk$set(
 ```
 
 ```{r packages, echo = FALSE, message = FALSE}
-library(tidyverse)
 library(stockseasonr)
 ```
 
@@ -74,17 +73,17 @@ head(ssdr[rownames(ssdr) %in% "logit_pred_pi_prop", ])
 head(ssdr[rownames(ssdr) %in% "log_pred_abund_mg", ])
 ```
 
-stockseasonr includes built-in plotting functions as example visualizations for predictions. Both combine predictions generated within TMB with predictive dataframes created by `gen_tmb()`. For example, predictions of seasonal trends in mean stock composition can be visualized with `stacked_comp_plot()`.
+stockseasonr includes built-in plotting functions as example visualizations for predictions. Both combine predictions generated within TMB with predictive dataframes created by `gen_tmb()`. For example, predictions of seasonal trends in mean stock composition can be visualized with `plot_stacked_comp()`.
 
 ```{r echo=TRUE}
-stacked_comp_plot(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
+plot_stacked_comp(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
                   mod_fit = m1)
 ```
 
-Estimates of stock-specific abundance can be used with the same inputs and `ribbon_abund_plot()`.
+Estimates of stock-specific abundance can be used with the same inputs and `plot_ribbon_abund()`.
 
 ```{r echo=TRUE}
-ribbon_abund_plot(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
+plot_ribbon_abund(comp_dat = comp_ex, pred_dat_comp = dat_in$pred_dat_comp,
                   mod_fit = m1)
 ```
 

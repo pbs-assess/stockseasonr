@@ -17,7 +17,8 @@
 #' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit 
 #' @importFrom ggplot2 theme_classic
-#'
+#' @importFrom rlang .data
+#' 
 #' @examples
 #' in1 <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, 
 #'                model_type = "integrated")
@@ -36,20 +37,21 @@ plot_ribbon_abund <- function(comp_dat, pred_dat_comp, mod_fit) {
   stk_names <- unique(comp_dat$agg)
   dum <- purrr::map_dfr(seq_along(stk_names), ~ pred_dat_comp)
   
-  # generate plotting dataframe
-  dum2 <- data.frame(
+  # generate plotting dataframe and figure
+  data.frame(
     stock = as.character(rep(stk_names, each = nrow(pred_dat_comp))),
     link_abund_est = comp_abund_pred[ , "Estimate"],
     link_abund_se =  comp_abund_pred[ , "Std. Error"]
   ) %>% 
     cbind(dum, .) %>%
     mutate(
-      comp_abund_est = exp(link_abund_est),
-      comp_abund_low = exp(link_abund_est + (qnorm(0.025) * link_abund_se)),
-      comp_abund_up = exp(link_abund_est + (qnorm(0.975) * link_abund_se))
-    ) 
-  
-  ggplot(data = dum2, aes(x = month_n)) +
+      comp_abund_est = exp(.data$link_abund_est),
+      comp_abund_low = exp(.data$link_abund_est + 
+                             (qnorm(0.025) * .data$link_abund_se)),
+      comp_abund_up = exp(.data$link_abund_est + 
+                            (qnorm(0.975) * .data$link_abund_se))
+    ) %>% 
+    ggplot(., aes(x = month_n)) +
     geom_line(aes(y = comp_abund_est, colour = region)) +
     geom_ribbon(aes(ymin = comp_abund_low, ymax = comp_abund_up, 
                     fill = region), 
@@ -62,7 +64,7 @@ plot_ribbon_abund <- function(comp_dat, pred_dat_comp, mod_fit) {
     theme(legend.position = "top",
           axis.text = element_text(size=9),
           plot.margin = unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
-    scale_x_continuous(breaks = seq(min(dum2$month_n), max(dum2$month_n), 
+    scale_x_continuous(breaks = seq(min(dum$month_n), max(dum$month_n), 
                                     by = 2)) +
     coord_cartesian(expand = FALSE, ylim = c(0, NA))
 }
