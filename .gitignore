@@ -8,3 +8,4 @@
 temp_scripts/sandbox.R
 !data/catch_ex.rda
 !data/comp_ex.rda
+*.dll
