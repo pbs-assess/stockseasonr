@@ -4,7 +4,7 @@
 > Seasonal predictions of stock composition and abundance
 
 <!-- badges: start -->
-[![Travis build status](https://travis-ci.org/pbs-assess/stockseasonr.svg?branch=master)](https://travis-ci.org/pbs-assess/stockseasonr)
+[![R-CMD-check](https://github.com/pbs-assess/stockseasonr/workflows/R-CMD-check/badge.svg)](https://github.com/pbs-assess/stockseasonr/actions)
 <!-- badges: end -->
 
 ## Installation
