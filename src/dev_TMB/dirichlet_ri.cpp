@@ -35,16 +35,16 @@ Type objective_function<Type>::operator() ()
   matrix<Type> Mu2_ik(n2, n_cat); // matrix of combined fixed/random eff
 
   // Covariance matrix for MVN random intercepts
-  matrix<Type> cov_mat(n_cat, n_cat);
-  for (int j = 0; j < n_cat; j++) {
-    for (int jj = 0; jj < n_cat; jj++) {
-      if (j == jj) {
-        cov_mat(j, jj) = exp(ln_sigma_A2) * exp(ln_sigma_A2);
-      } else {
-        cov_mat(j, jj) = 0;
-      }
-    }
-  }
+  // matrix<Type> cov_mat(n_cat, n_cat);
+  // for (int j = 0; j < n_cat; j++) {
+  //   for (int jj = 0; jj < n_cat; jj++) {
+  //     if (j == jj) {
+  //       cov_mat(j, jj) = exp(ln_sigma_A2) * exp(ln_sigma_A2);
+  //     } else {
+  //       cov_mat(j, jj) = 0;
+  //     }
+  //   }
+  // }
 
   Type jll = 0; // initialize joint log-likelihood
 
