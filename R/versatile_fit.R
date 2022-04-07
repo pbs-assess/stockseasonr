@@ -208,12 +208,12 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
 
 ## FIT MODELS  -----------------------------------------------------------------
 
-tmb_data = model_inputs$tmb_data; 
-tmb_pars = model_inputs$tmb_pars; 
-tmb_map = model_inputs$tmb_map; 
-tmb_random  = model_inputs$tmb_random;
-model = "dirichlet";
-fit_random = FALSE
+# tmb_data = model_inputs$tmb_data; 
+# tmb_pars = model_inputs$tmb_pars; 
+# tmb_map = model_inputs$tmb_map; 
+# tmb_random  = model_inputs$tmb_random;
+# model = "dirichlet";
+# fit_random = FALSE
 
 fit_model <- function(tmb_data, tmb_pars, tmb_map = NULL, tmb_random = NULL,
                       model = c("negbin", "dirichlet", "integrated"),
