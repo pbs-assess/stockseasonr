@@ -1,35 +1,44 @@
-## Updated version of make_inputs and fit_model intended to increase flexibility
-#
-
-# Note that two prediction datasets are necessary since abundance and composition
-# data may be differently stratified
-
-# Dev TO DO:
-# 1) Make aggregate levels flexible (i.e. turn on/off based on input data)
-# 2) Make RE intercepts flexible (i.e. turn on/off or remove MVN component)
-# 3) Map 0 observations in composition component
-
-library(tidyverse)
-library(mgcv)
-library(TMB)
-
-# 
-# abund_formula = catch ~ 0 + area +
-#   s(month_n, bs = "tp", k = 3, by = area) +
-#   s(month_n, by = year, bs = "tp", m = 1, k = 3) +
-#   offset
-# abund_dat = catch
-# abund_rint = "year"
-# pred_abund = pred_dat_catch
-# comp_formula = coarse_agg ~  s(month_n, bs = "cc", k = 4#, by = reg
-# )
-# comp_dat = stock_comp
-# comp_rint = "year"
-# pred_comp = pred_dat_stock_comp
-# model = "dirichlet"
-
-
-## MAKE INPUTS  ----------------------------------------------------------------
+#' Prepare TMB inputs
+#'
+#' @param abund_formula Model formula (excluding RIs) for abundance component. 
+#'   Penalized splines are possible via mgcv with s(). See examples and 
+#'   details below.
+#' @param comp_formula Model formula (excluding RIs) for composition component. 
+#'   Splines are possible via mgcv, but are not penalized (i.e. k must be 
+#'   specified). See examples and details below.
+#' @param comp_knots Optional list specifying knots location for composition 
+#'   formula.
+#' @param abund_dat Dataframe used to fit abundance component.
+#' @param comp_dat Dataframe used to fit composition component.
+#' @param abund_rint Name of column in abund_dat containing random intercepts.
+#' @param comp_rint Name of column in comp_dat containing random intercepts.
+#' @param pred_dat Dataframe used to generate predictions. Applies to both 
+#'   abundance and composition components in integrated model.
+#' @param model Character specifying whether abundance ("negbin"), composition
+#'   ("dirichlet"), or both ("integrated") model components should be estimated.
+#' @param include_re_preds Logical specifying whether predictions should include
+#'   random intercepts or not. In case of composition or integrated models this
+#'   requires a multivariate normal distribution that can be unstable with large
+#'   numbers of parameters.
+#'
+#'
+#' @return
+#' List of inputs (data and parameter lists) to pass to TMB and dataframes to 
+#'   use in subsequent plotting.
+#' @export
+#' 
+#' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
+#' @importFrom dplyr left_join group_by summarize group_split
+#' @importFrom forcats fct_reorder
+#' @importFrom tidyr complete nesting pivot_wider replace_na
+#' @importFrom stats coef predict rnorm runif
+#' @importFrom purrr map_dfr
+#'
+#' @examples
+#' dat_list <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, 
+#'                     model_type = "integrated")
+#' dat_list$data #data inputs for TMB
+#' dat_list$pars #parameter inputs for TMB
 
 make_inputs <- function(abund_formula = NULL, comp_formula = NULL, 
                         comp_knots = NULL,
@@ -219,99 +228,3 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
 }
 
 
-## FIT MODELS  -----------------------------------------------------------------
-
-# tmb_data = model_inputs_ri$tmb_data;
-# tmb_pars = model_inputs_ri$tmb_pars;
-# tmb_map = model_inputs_ri$tmb_map;
-# tmb_random  = model_inputs_ri$tmb_random;
-# fit_random = TRUE;
-# ignore_fix = FALSE;
-# model_specs = list(model = "dirichlet",
-#                    include_re_preds = FALSE)
-# nlminb_loops = 2
-# newton_loops = 2
-
-fit_model <- function(tmb_data, tmb_pars, tmb_map = NULL, tmb_random = NULL,
-                      model = c("negbin", "dirichlet", "integrated"),
-                      fit_random = TRUE, ignore_fix = FALSE,
-                      include_re_preds = FALSE) {
-  
-  if (model_specs$model == "negbin") tmb_model <- "negbin_rsplines"
-  # use MVN model if random effects predictions necessary
-  if (model_specs$model == "dirichlet") {
-    tmb_model <- ifelse(model_specs$include_re_preds == FALSE,
-                        "dirichlet_ri",
-                        "dirichlet_mvn")
-  }
-  if (model_specs$model == "integrated") {
-    tmb_model <- ifelse(model_specs$include_re_preds == FALSE,
-                        "negbin_rsplines_dirichlet_ri",
-                        "negbin_rsplines_dirichlet_mvn")
-  }
-  
-  ## fit fixed effects only 
-  # map random effects
-  if (fit_random == FALSE | ignore_fix == FALSE) {
-    new_map_list <- tmb_pars[names(tmb_pars) %in% tmb_random]
-    tmb_map_random <- c(
-      tmb_map,
-      map(new_map_list, function (x) factor(rep(NA, length(x))))
-    )
-    # fit
-    obj <- TMB::MakeADFun(
-      data = tmb_data,
-      parameters = tmb_pars,
-      map = tmb_map_random,
-      DLL = tmb_model
-    )
-    opt <- stats::nlminb(obj$par, obj$fn, obj$gr,
-                         control = list(eval.max = 1e4, iter.max = 1e4)
-    )
-  }
-  
-  ## fit with random effects 
-  if (fit_random) {
-    # pass parameter inits from above unless specified otherwise
-    if (ignore_fix == TRUE) {
-      pars_in <- tmb_pars   
-    } else {
-      pars_in <- obj$env$parList(opt$par)
-    } 
-    
-    obj <- TMB::MakeADFun(
-      data = tmb_data,
-      parameters = pars_in,
-      map = tmb_map,
-      random = tmb_random,
-      DLL = tmb_model
-    )
-    opt <- stats::nlminb(obj$par, obj$fn, obj$gr)
-  }
-  
-  if (nlminb_loops > 1) {
-    for (i in seq(2, nlminb_loops, length = max(0, nlminb_loops - 1))) {
-      temp <- opt[c("iterations", "evaluations")]
-      opt <- stats::nlminb(
-        start = opt$par, objective = obj$fn, gradient = obj$gr)
-      opt[["iterations"]] <- opt[["iterations"]] + temp[["iterations"]]
-      opt[["evaluations"]] <- opt[["evaluations"]] + temp[["evaluations"]]
-    }
-  }
-  
-  if (newton_loops > 0) {
-    for (i in seq_len(newton_loops)) {
-      g <- as.numeric(obj$gr(opt$par))
-      h <- stats::optimHess(opt$par, fn = obj$fn, gr = obj$gr)
-      opt$par <- opt$par - solve(h, g)
-      opt$objective <- obj$fn(opt$par)
-    }
-  }
-  
-  sdr <- sdreport(obj)
-  
-  # derived quantities
-  ssdr <- summary(sdr)
-  
-  return(list(sdr = sdr, ssdr = ssdr))
-}

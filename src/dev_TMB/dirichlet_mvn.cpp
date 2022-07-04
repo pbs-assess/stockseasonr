@@ -20,8 +20,8 @@ Type objective_function<Type>::operator() ()
   // PARAMETERS ----------------------------------------------------------------
 
   PARAMETER_MATRIX(B2_jk); // parameter matrix
-  PARAMETER_MATRIX(A2_hk);  // matrix of random intercepts (n_rfac2 x n_cat)
   PARAMETER(ln_sigma_A2); // among random intercept SD
+  PARAMETER_MATRIX(A2_hk);  // matrix of random intercepts (n_rfac2 x n_cat)
 
 
   // DERIVED QUANTITIES --------------------------------------------------------
