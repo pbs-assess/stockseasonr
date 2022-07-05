@@ -14,14 +14,13 @@ Type objective_function<Type>::operator() ()
   
   //predictions
   DATA_MATRIX(pred_X2_ij);    // model matrix for predictions
-  DATA_IVECTOR(pred_rfac2); // vector of predicted random intercepts
 
 
   // PARAMETERS ----------------------------------------------------------------
 
   PARAMETER_MATRIX(B2_jk); // parameter matrix
   PARAMETER(ln_sigma_A2); // among random intercept SD
-  PARAMETER_MATRIX(A2_hk);  // matrix of random intercepts (n_rfac2 x n_cat)
+  PARAMETER_VECTOR(A2_h);  // vector of random intercepts
 
 
   // DERIVED QUANTITIES --------------------------------------------------------
@@ -33,17 +32,6 @@ Type objective_function<Type>::operator() ()
   // Matrix for intermediate objects
   matrix<Type> Mu2_ik(n2, n_cat); // matrix of combined fixed/random eff
 
-  // Covariance matrix for MVN random intercepts
-  matrix<Type> cov_mat(n_cat, n_cat);
-  for (int j = 0; j < n_cat; j++) {
-    for (int jj = 0; jj < n_cat; jj++) {
-      if (j == jj) {
-        cov_mat(j, jj) = exp(ln_sigma_A2) * exp(ln_sigma_A2);
-      } else {
-        cov_mat(j, jj) = 0;
-      }
-    }
-  }
 
   Type jll = 0; // initialize joint log-likelihood
 
@@ -54,7 +42,7 @@ Type objective_function<Type>::operator() ()
 
   for (int i = 0; i < n2; ++i) {
     for(int k = 0; k < n_cat; k++) {
-      Mu2_ik(i, k) = Mu2_fx_ik(i, k) + A2_hk(rfac2(i), k);
+      Mu2_ik(i, k) = Mu2_fx_ik(i, k) + A2_h(rfac2(i));
     }
   }
 
@@ -80,11 +68,17 @@ Type objective_function<Type>::operator() ()
   jnll = -jll;
 
   
-  // Probability of multivariate random intercepts
+  // Probability of random intercepts
+  // for (int h = 0; h < n_rfac2; h++) {
+  //   jnll -= dnorm(A2_h(h), Type(0.0), exp(ln_sigma_A2), true);
+  // }
   for (int h = 0; h < n_rfac2; h++) {
-    vector<Type> A2_hk_vec = A2_hk.row(h);
-    MVNORM_t<Type> neg_log_dmvnorm(cov_mat);
-    jnll += neg_log_dmvnorm(A2_hk_vec);
+    if (h == 0) {
+      jnll -= dnorm(A2_h(h), Type(0.0), exp(ln_sigma_A2), true);  
+    }
+    if (h > 0) {
+      jnll -= dnorm(A2_h(h), A2_h(h - 1), exp(ln_sigma_A2), true);
+    }
   }
 
   Type sigma_rfac2 = exp(ln_sigma_A2);
@@ -93,8 +87,8 @@ Type objective_function<Type>::operator() ()
 
   // PREDICTIONS ---------------------------------------------------------------
   
-  matrix<Type> pred_Mu2_fx(n_predX2, n_cat);    //pred fixed effects on log scale
-  matrix<Type> pred_Mu2(n_predX2, n_cat);    //pred FE + RE on log scale
+  // matrix<Type> pred_Mu2_fx(n_predX2, n_cat);    //pred fixed effects on log scale
+  matrix<Type> pred_Mu2(n_predX2, n_cat);    //pred FE on log scale
   matrix<Type> pred_Gamma(n_predX2, n_cat);  //transformed pred effects 
   vector<Type> pred_Gamma_plus(n_predX2);        
   vector<Type> pred_theta(n_predX2); 
@@ -103,13 +97,8 @@ Type objective_function<Type>::operator() ()
   matrix<Type> pred_Pi_prop(n_predX2, n_cat); // predicted counts as ppn.
   matrix<Type> logit_pred_Pi_prop(n_predX2, n_cat); 
 
-  pred_Mu2_fx = pred_X2_ij * B2_jk; 
+  pred_Mu2 = pred_X2_ij * B2_jk; 
 
-  for (int m = 0; m < n_predX2; m++) {
-    for(int k = 0; k < n_cat; k++) {
-      pred_Mu2(m, k) = pred_Mu2_fx(m, k) + A2_hk(pred_rfac2(m), k);
-    }
-  }
   pred_Gamma = exp(pred_Mu2.array());
   pred_Gamma_plus = pred_Gamma.rowwise().sum();
   pred_theta = 1 / (pred_Gamma_plus + 1);

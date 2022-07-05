@@ -1,21 +1,37 @@
+#' Fit model
+#'
+#' @param tmb_data List of tmb input data generated in 
+#'   `stockseasonr::make_inputs()`.
+#' @param tmb_pars List of tmb input parameters generated in 
+#'   `stockseasonr::make_inputs()`.
+#' @param tmb_map Optional list of tmb input parameters to be mapped (i.e. 
+#'   ignored) generated in [stockseasonr::make_inputs()].
+#' @param tmb_random Optional list of tmb input parameters treated as random
+#'   effects (includes smooths and intercepts) generated in 
+#'   `stockseasonr::make_inputs()`.
+#' @param fit_random Logical (defaults to FALSE) specifying whether random 
+#'   effects should be estimated.
+#' @param ignore_fix Logical (defaults to FALSE) specifying whether a 
+#'   fixed-effects only version of the model should be fit first to generate 
+#'   initial parameters.
+#' @param nlminb_loops How many times to run [stats::nlminb()] optimization.
+#'   Sometimes restarting the optimizer at the previous best values aids
+#'   convergence. If the maximum gradient is still too large,
+#'   try increasing this to `2`.
+#' @param newton_loops How many Newton optimization steps to try with 
+#'   [stats::optimHess()] after running [stats::nlminb()]. Sometimes aids 
+#'   convergence.
+#'
+#' @return
+#' Output from [TMB::sdreport()] and [summary(TMB::sdreport())]
+#' @export
+#' 
+#' @examples
 
-## FIT MODELS  -----------------------------------------------------------------
-
-# tmb_data = model_inputs_ri$tmb_data;
-# tmb_pars = model_inputs_ri$tmb_pars;
-# tmb_map = model_inputs_ri$tmb_map;
-# tmb_random  = model_inputs_ri$tmb_random;
-# fit_random = TRUE;
-# ignore_fix = FALSE;
-# model_specs = list(model = "dirichlet",
-#                    include_re_preds = FALSE)
-# nlminb_loops = 2
-# newton_loops = 2
-
-fit_model <- function(tmb_data, tmb_pars, tmb_map = NULL, tmb_random = NULL,
-                      model = c("negbin", "dirichlet", "integrated"),
-                      fit_random = TRUE, ignore_fix = FALSE,
-                      include_re_preds = FALSE) {
+fit_stockseasonr <- function(tmb_data, tmb_pars, tmb_map = NULL, 
+                             tmb_random = NULL, fit_random = FALSE, 
+                             ignore_fix = FALSE, model_specs,
+                             nlminb_loops = 1L, newton_loops = 0L) {
   
   if (model_specs$model == "negbin") tmb_model <- "negbin_rsplines"
   # use MVN model if random effects predictions necessary

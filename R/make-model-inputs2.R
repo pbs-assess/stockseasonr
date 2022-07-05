@@ -12,41 +12,44 @@
 #' @param comp_dat Dataframe used to fit composition component.
 #' @param abund_rint Name of column in abund_dat containing random intercepts.
 #' @param comp_rint Name of column in comp_dat containing random intercepts.
-#' @param pred_dat Dataframe used to generate predictions. Applies to both 
-#'   abundance and composition components in integrated model.
+#' @param pred_dat Dataframe used to generate predictions. Applies to 
+#'   both abundance and composition components in integrated model. If not 
+#'   supplied then defaults to observations for "negbin" or "dirichlet", but 
+#'   must be supplied for "integrated".
 #' @param model Character specifying whether abundance ("negbin"), composition
 #'   ("dirichlet"), or both ("integrated") model components should be estimated.
 #' @param include_re_preds Logical specifying whether predictions should include
 #'   random intercepts or not. In case of composition or integrated models this
-#'   requires a multivariate normal distribution that can be unstable with large
-#'   numbers of parameters.
-#'
+#'   requires an alternative model with a multivariate normal distribution that 
+#'   can be unstable with large numbers of parameters.
 #'
 #' @return
-#' List of inputs (data and parameter lists) to pass to TMB and dataframes to 
-#'   use in subsequent plotting.
+#' List of inputs (model_specs, tmb_data, tmb_pars, tmb_map and tmb_random) to 
+#'   pass to TMB and dataframes to use in subsequent plotting.
 #' @export
 #' 
-#' @importFrom dplyr select distinct filter arrange mutate row_number mutate_if
-#' @importFrom dplyr left_join group_by summarize group_split
-#' @importFrom forcats fct_reorder
-#' @importFrom tidyr complete nesting pivot_wider replace_na
-#' @importFrom stats coef predict rnorm runif
-#' @importFrom purrr map_dfr
+#' @importFrom dplyr mutate mutate_if
+#' @importFrom tidyr pivot_wider replace_na
+#' @importFrom stats coef formula predict rnorm runif
 #'
 #' @examples
-#' dat_list <- gen_tmb(comp_dat = comp_ex, catch_dat = catch_ex, 
-#'                     model_type = "integrated")
-#' dat_list$data #data inputs for TMB
-#' dat_list$pars #parameter inputs for TMB
+
+abund_formula = catch ~ s(month_n, k = 4) + region + offset
+abund_dat = catch_ex 
+abund_rint = "year"
+model = "negbin"
+include_re_preds = FALSE
+abund_formula = catch ~ s(month_n, k = 4) + region + offset
+abund_dat = catch_ex 
+abund_rint = "year"
+model = "negbin"
 
 make_inputs <- function(abund_formula = NULL, comp_formula = NULL, 
                         comp_knots = NULL,
                         abund_dat = NULL, comp_dat = NULL,
                         abund_rint = NULL, comp_rint = NULL,
                         pred_dat = NULL,
-                        model = c("negbin", "dirichlet", "integrated"),
-                        include_re_preds = FALSE) {
+                        model = c("negbin", "dirichlet", "integrated")) {
   
   # make sure necessary components are present
   if (model %in% c("dirichlet", "integrated")) {
@@ -57,6 +60,13 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
       stop("Composition data not identified. Name vector in comp_dat 'prob' to 
          indicate proportions data.")
     }
+  }
+  
+  # check predictions
+  if (is.null(pred_dat)) {
+    if (model == "integrated") stop("Must supply dataframe of predictions.")
+    if (model == "negbin") pred_dat <- abund_dat
+    if (model == "dirichlet") pred_dat <- comp_dat
   }
   
   # initialize empty lists to fill with data and initial parameters
@@ -93,7 +103,7 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
       Xs = sm$Xs, # optional smoother linear effect matrix
       pred_X1_ij = pred_X_ij,
       pred_Zs = sm_pred$Zs,
-      pred_Xs = sm_pred$Xs#,
+      pred_Xs = sm_pred$Xs
     )
     tmb_data <- c(tmb_data, abund_tmb_data)
     
@@ -130,7 +140,7 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
   
   if (model %in% c("dirichlet", "integrated")) {
     # adjust composition model formula
-    comp_formula_split <- str_split(comp_formula, "~")
+    comp_formula_split <- stringr::str_split(comp_formula, "~")
     comp_formula_new <- formula(paste("dummy", 
                                       comp_formula_split[[3]], sep = "~"))
     group_var <- comp_formula_split[[2]]
@@ -182,36 +192,6 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
       ln_sigma_A2 = log(0.25)
     )
     tmb_pars <- c(tmb_pars, comp_tmb_pars)
-    
-    # adjust data and parameters when RI predictions being made
-    if (include_re_preds == TRUE) {
-      #vector of predicted random intercepts
-      #only added for dirichlet because generated in neg bin component for 
-      #integrated model
-      if (model == "dirichlet") {
-        pred_rand_ints <- list(
-          pred_rfac1 = as.numeric(pred_dat[[comp_rint]]) - 1
-        )
-        tmb_data <- c(tmb_data, pred_rand_ints)
-      }
-      # mvn matrix of REs
-      mvn_rand_inits <- list(
-        A2_hk = matrix(rnorm(n_rint2 * ncol(obs_comp), 0, 0.5), 
-                       nrow = n_rint2,
-                       ncol = ncol(obs_comp))
-      )
-      
-      tmb_pars <- c(tmb_pars, mvn_rand_inits)
-      tmb_random <- c(tmb_random, "A2_hk")
-    } else if (include_re_preds == FALSE) {
-      # vector of random intercepts
-      rand_inits <- list(
-        A2_h = rnorm(n_rint2, 0, 0.5)
-      )
-      
-      tmb_pars <- c(tmb_pars, rand_inits)
-      tmb_random <- c(tmb_random, "A2_h")
-    }
   }
   
   # combine model specs to pass as logicals to fitting function
@@ -226,5 +206,3 @@ make_inputs <- function(abund_formula = NULL, comp_formula = NULL,
   
   return(out_list)
 }
-
-
