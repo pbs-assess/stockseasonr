@@ -1,0 +1,168 @@
+#include <TMB.hpp>
+
+// List of matrices
+template <class Type>
+struct LOM_t : vector<matrix<Type> > {
+  LOM_t(SEXP x){  // x = list passed from R
+(*this).resize(LENGTH(x));
+    for(int i=0; i<LENGTH(x); i++){
+      SEXP sm = VECTOR_ELT(x, i);
+      (*this)(i) = asMatrix<Type>(sm);
+    }
+  }
+};
+
+template<class Type>
+Type objective_function<Type>::operator() ()
+{
+
+  // DATA ----------------------------------------------------------------------
+  
+  DATA_VECTOR(y1_i);
+  DATA_MATRIX(X1_ij);
+  DATA_IMATRIX(re_index1);
+  DATA_IVECTOR(ln_sigma_re_index1);
+  DATA_IVECTOR(nobs_re1);
+  // DATA_INTEGER(n_re);
+  DATA_IVECTOR(b_smooth_start);
+  DATA_STRUCT(Zs, LOM_t); // [L]ist [O]f (basis function matrices) [Matrices]
+  DATA_MATRIX(Xs); // smoother linear effect matrix
+
+  //predictions
+  // DATA_MATRIX(pred_X1_ij); // matrix for FE predictions
+  // DATA_STRUCT(pred_Zs, LOM_t); // [L]ist [O]f (basis function matrices) [Matrices]
+  // DATA_MATRIX(pred_Xs); // smoother linear effect matrix 
+  // DATA_IVECTOR(pred_re_index1);
+   
+
+  // PARAMETERS ----------------------------------------------------------------
+  
+  PARAMETER_VECTOR(b1_j); // fixed effects parameters
+  PARAMETER(ln_phi);     // variance
+  PARAMETER_VECTOR(bs);   // smoother linear effects
+  PARAMETER_VECTOR(ln_smooth_sigma);  // variances of spline REs if included
+  // random effects
+  PARAMETER_VECTOR(b_smooth);  // P-spline smooth parameters
+  PARAMETER_VECTOR(re1);
+  PARAMETER_VECTOR(ln_sigma_re1);
+  // PARAMETER_ARRAY(re1);
+  // PARAMETER_ARRAY(ln_sigma_re1);
+  
+
+  // DERIVED -------------------------------------------------------------------
+
+  int n1 = y1_i.size();
+  int n_re = re_index1.cols();      // number of random intercepts
+  // int n_predX1 = pred_X1_ij.rows(); // number of finest scale predictions (abundance only)  
+
+  Type jnll = 0.0; // initialize joint negative log likelihood
+
+
+  // LINEAER PREDICTOR ---------------------------------------------------------
+
+  vector<Type> eta_fx_i = X1_ij * b1_j;
+
+  // Smooths
+  vector<Type> eta_smooth_i(X1_ij.rows());
+  eta_smooth_i.setZero();
+
+  for (int s = 0; s < b_smooth_start.size(); s++) { // iterate over # of smooth elements
+    vector<Type> beta_s(Zs(s).cols());
+    beta_s.setZero();
+    for (int j = 0; j < beta_s.size(); j++) {
+      beta_s(j) = b_smooth(b_smooth_start(s) + j);
+      jnll -= dnorm(beta_s(j), Type(0), exp(ln_smooth_sigma(s)), true);
+    }
+    eta_smooth_i += Zs(s) * beta_s;
+  }
+  eta_smooth_i += Xs * bs;
+
+  // Combine smooths and linear
+  vector<Type> eta_i(n1);
+  eta_i.setZero();
+  for (int i = 0; i < n1; i++) {
+    eta_i(i) = eta_fx_i(i) + eta_smooth_i(i); 
+  }
+  
+  // Add random intercepts
+  vector<Type> eta_re_i(n1); 
+  eta_re_i.setZero();
+  vector<Type> mu_i(n1); 
+  mu_i.setZero();
+  for (int i = 0; i < n1; i++) {
+    int temp = 0;
+    for (int g = 0; g < n_re; g++) {
+      if (g == 0) eta_re_i(i) += re1(re_index1(i, g));
+      if (g > 0) {
+        temp += nobs_re1(g - 1);
+        eta_re_i(i) += re1(re_index1(i, g) + temp);
+      } 
+      // if (g == 0) eta_re_i(i) += re1(re_index1(i, g), 0);
+      // if (g > 0) {
+      //   temp += nobs_re1(g - 1);
+      //   eta_re_i(i) += re1(re_index1(i, g) + temp, 0);
+      // }      
+    }
+    mu_i(i) = eta_i(i) + eta_re_i(i);
+  }
+
+
+  // LIKELIHOOD ----------------------------------------------------------------
+
+  // Type s1, s2;
+  vector<Type> s1(n1);
+  vector<Type> s2(n1);
+  for(int i = 0; i < n1; i++){
+    s1(i) = mu_i(i); //mu
+    s2(i) = 2.0 * (s1(i) - ln_phi); //scale
+    jnll -= dnbinom_robust(y1_i(i), s1(i), s2(i), true);
+  }
+
+  // Report for residuals
+  // ADREPORT(s1);
+  // ADREPORT(s2);
+
+  // Probability of random coefficients (add counter for random walk)
+  for(int h = 0; h < re1.size(); h++){
+    // if (h == 0) {
+        jnll -= dnorm(re1(h), Type(0.0), exp(ln_sigma_re1(ln_sigma_re_index1(h))), true);  
+      // jnll -= dnorm(re1(h, 0), Type(0.0), exp(ln_sigma_re1(ln_sigma_re_index1(h), 0)), true);  
+  }
+  //   if (h > 0) {
+  //     jnll -= dnorm(re1(h), re1(h - 1), exp(ln_sigma_re1), true);
+  //   }
+  // }
+
+
+  // PREDICTIONS ---------------------------------------------------------------
+
+  // vector<Type> pred_mu1 = pred_X1_ij * b1_j;
+
+  // // smoothers
+  // vector<Type> pred_smooth_i(n_predX1);
+  // pred_smooth_i.setZero();
+  // for (int s = 0; s < b_smooth_start.size(); s++) { // iterate over # of smooth elements
+  //   vector<Type> beta_s(pred_Zs(s).cols());
+  //   beta_s.setZero();
+  //   for (int j = 0; j < beta_s.size(); j++) {
+  //     beta_s(j) = b_smooth(b_smooth_start(s) + j);
+  //   }
+  //   pred_smooth_i += pred_Zs(s) * beta_s;
+  // }
+  // pred_smooth_i += pred_Xs * bs;
+  
+  // // combine fixed and smoothed predictions
+  // for (int i = 0; i < n_predX1; i++) {
+  //   pred_mu1(i) += pred_smooth_i(i);
+  // }
+
+  // // add random intercepts 
+  // // for (int i = 0; i < n_predX1; i++) {
+  // //   pred_mu1(i) += re1(pred_re_index1(i));
+  // // }
+
+  // REPORT(pred_mu1);
+  // ADREPORT(pred_mu1);
+
+  return jnll;
+}
