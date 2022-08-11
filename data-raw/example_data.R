@@ -17,6 +17,7 @@ comp_ex <- comp_full %>%
     year %in% year_seq
     ) %>% 
   droplevels() %>% 
+  rename(prob = agg_prob) %>% 
   select(-gear, -region_c, -month)
 
 # subset catch data

@@ -5,37 +5,54 @@
 \title{Fit model}
 \usage{
 fit_stockseasonr(
-  tmb_data,
-  tmb_pars,
-  tmb_map = NULL,
-  tmb_random = NULL,
-  fit_random = FALSE,
-  ignore_fix = FALSE,
-  model_specs,
+  abund_formula = NULL,
+  comp_formula = NULL,
+  abund_dat = NULL,
+  comp_dat = NULL,
+  abund_offset = NULL,
+  pred_dat = NULL,
+  model = c("negbin", "dirichlet", "integrated"),
+  random_walk = FALSE,
+  fit = TRUE,
   nlminb_loops = 1L,
   newton_loops = 0L
 )
 }
 \arguments{
-\item{tmb_data}{List of tmb input data generated in
-\code{stockseasonr::make_inputs()}.}
+\item{abund_formula}{Model formula for abundance component of model (fit with
+negative binomial distribution (nbinom2)). Random intercepts (IID or RW)
+are possible using lme4 syntax, e.g., + (1 | g) where g is a column of
+class factor representing groups. Penalized splines are possible via mgcv
+with s() (te not currently supported).}
 
-\item{tmb_pars}{List of tmb input parameters generated in
-\code{stockseasonr::make_inputs()}.}
+\item{comp_formula}{Model formula for composition component of model (fit with
+dirichlet distribution). Random intercepts (IID or RW) are possible using
+lme4 syntax, e.g., + (1 | g) where g is a column of class factor
+representing groups. Splines are possible via mgcv with s(), but unlike
+abundance component these are unpenalized so knots must be specified with
+k=.}
 
-\item{tmb_map}{Optional list of tmb input parameters to be mapped (i.e.
-ignored) generated in \code{\link[=make_inputs]{make_inputs()}}.}
+\item{abund_dat}{Dataframe containing abundance response (e.g. catch) and
+covariates.}
 
-\item{tmb_random}{Optional list of tmb input parameters treated as random
-effects (includes smooths and intercepts) generated in
-\code{stockseasonr::make_inputs()}.}
+\item{comp_dat}{Dataframe containing composition response in long format (i.e
+column of class factor) and covariates.}
 
-\item{fit_random}{Logical (defaults to FALSE) specifying whether random
-effects should be estimated.}
+\item{abund_offset}{A numeric vector representing the model offset. Usually a
+log transformed variable. \emph{Not included in any prediction.}}
 
-\item{ignore_fix}{Logical (defaults to FALSE) specifying whether a
-fixed-effects only version of the model should be fit first to generate
-initial parameters.}
+\item{pred_dat}{Optional dataframe used to generate predictions. Note that
+in integrated model this applies to both abundance and composition
+components.}
+
+\item{model}{String specifying whether abundance (negbin), composition
+(dirichlet), or integrated model is fit.}
+
+\item{random_walk}{Logical specifying whether random intercepts are IID or
+random walk.}
+
+\item{fit}{Logical specifying whether model should be fit in TMB. If FALSE
+list of model inputs is returned.}
 
 \item{nlminb_loops}{How many times to run \code{\link[stats:nlminb]{stats::nlminb()}} optimization.
 Sometimes restarting the optimizer at the previous best values aids
@@ -47,7 +64,8 @@ try increasing this to \code{2}.}
 convergence.}
 }
 \value{
-Output from \code{\link[TMB:sdreport]{TMB::sdreport()}} and \link[summary(TMB:sdreport())]{summary(TMB::sdreport())}
+List including model inputs as well as output from \code{\link[TMB:sdreport]{TMB::sdreport()}}
+(if fit = TRUE).
 }
 \description{
 Fit model

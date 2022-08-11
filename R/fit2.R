@@ -26,6 +26,8 @@
 #'   random walk. 
 #' @param fit Logical specifying whether model should be fit in TMB. If FALSE 
 #'   list of model inputs is returned. 
+#' @param silent Silent or include optimization details? Helpful to set to FALSE
+#'   for models that take a while to fit.
 #' @param nlminb_loops How many times to run [stats::nlminb()] optimization.
 #'   Sometimes restarting the optimizer at the previous best values aids
 #'   convergence. If the maximum gradient is still too large,
@@ -35,14 +37,13 @@
 #'   convergence.
 #'
 #' @return
-#' List including model inputs as well as output from [TMB::sdreport()] and 
-#' [summary(TMB::sdreport())] (if fit = TRUE).
+#' List including model inputs as well as output from [TMB::sdreport()] 
+#' (if fit = TRUE).
 #' @export
 #' 
 #' @importFrom dplyr select mutate mutate_if
 #' @importFrom tidyr pivot_wider replace_na
 #' 
-#' @examples
 
 fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL, 
                              abund_dat = NULL, comp_dat = NULL,
@@ -51,6 +52,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
                              model = c("negbin", "dirichlet", "integrated"),
                              random_walk = FALSE,
                              fit = TRUE,
+                             silent = TRUE,
                              nlminb_loops = 1L, newton_loops = 0L) {
   
   # make sure necessary components are present
@@ -85,10 +87,10 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     
     
     # generate offset separately
-    if (is.null(offset)) {
-      offset <- rep(0, length(y_i))
+    if (is.null(abund_offset)) {
+      offset <- rep(0, nrow(abund_dat))
     } else {
-      offset <- abund_dat[["offset"]]
+      offset <- abund_dat[[abund_offset]]
     }
     
     # smooths present (conditional for determining input structure)
@@ -198,7 +200,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
   if (model %in% c("integrated", "dirichlet")) {
     # identify grouping variable for composition component (e.g. vector of 
     # stock names)
-    comp_formula_split <- str_split(comp_formula, "~")
+    comp_formula_split <- stringr::str_split(comp_formula, "~")
     comp_formula_new <- formula(paste("dummy", 
                                       comp_formula_split[[3]], sep = "~"))
     group_var <- comp_formula_split[[2]]
@@ -353,25 +355,26 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
   
   # fit
   if (fit == TRUE) {
-    if (model == "negbin") tmb_model <- "negbin_rsplines_sdmTMB"
+    if (model == "negbin") tmb_model <- "negbin"
     # use MVN model if random effects predictions necessary
     if (model == "dirichlet") {
       tmb_model <- #ifelse(include_re_preds == FALSE,
-        "dirichlet_ri_sdmTMB"#,
+        "dirichlet"#,
       # "dirichlet_mvn")
     }
     if (model == "integrated") {
       tmb_model <- #ifelse(include_re_preds == FALSE,
-        "integrated_ri_sdmTMB"#,
+        "integrated"#,
       # "negbin_rsplines_dirichlet_mvn")
     }
     
     obj <- TMB::MakeADFun(
-      data = tmb_data,
+      data = c(list(model = tmb_model), tmb_data), #tmb_data,
       parameters = tmb_pars, 
       map = tmb_map,
       random = tmb_random,
-      DLL = tmb_model
+      DLL = "stockseasonr_TMBExports",
+      silent = silent
     )
     opt <- stats::nlminb(obj$par, obj$fn, obj$gr)
     
@@ -394,7 +397,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       }
     }
     
-    sdr <- sdreport(obj)
+    sdr <- TMB::sdreport(obj)
     ssdr <- summary(sdr)
     
     out_list <- c(out_list, list(sdr = sdr, ssdr = ssdr))
