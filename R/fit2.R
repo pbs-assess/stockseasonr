@@ -44,6 +44,39 @@
 #' @importFrom dplyr select mutate mutate_if
 #' @importFrom tidyr pivot_wider replace_na
 #' 
+#' @examples 
+#' dum_pred <- expand.grid(month_n = seq(1, 12, by = 0.1),
+#'                         region = unique(comp_ex$region))
+#'
+#' # composition model with hierarchical random walk
+#' m1 <- fit_stockseasonr(comp_formula = agg ~ 1 + region + 
+#'                         s(month_n, bs = "tp", k = 4, m = 2) + 
+#'                         (1 | year),
+#'                        comp_dat = comp_ex,
+#'                        pred_dat = dum_pred,
+#'                        model = "dirichlet",
+#'                        random_walk = TRUE,
+#'                        fit = TRUE,
+#'                        nlminb_loops = 2, newton_loops = 1)
+#'                                  
+#' # group-specific abundance model with hierarchical random walk
+#' m2 <- fit_stockseasonr(abund_formula = catch ~ 1 +
+#'                        s(month_n, bs = "tp", k = 3, m = 2) +
+#'                          region +
+#'                          (1 | year),
+#'                        abund_dat = catch_ex,
+#'                        abund_offset = "offset",
+#'                        comp_formula = agg ~ 1 + region + 
+#'                          s(month_n, bs = "tp", k = 4, m = 2) + 
+#'                          (1 | year),
+#'                        comp_dat = comp_ex,
+#'                        pred_dat = dum_pred,
+#'                        model = "integrated",
+#'                        random_walk = TRUE,
+#'                        fit = TRUE,
+#'                        silent = FALSE,
+#'                        nlminb_loops = 2, newton_loops = 1)
+#'                                  
 
 fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL, 
                              abund_dat = NULL, comp_dat = NULL,
@@ -84,7 +117,6 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       spatial = "off",
       do_fit = FALSE
     )
-    
     
     # generate offset separately
     if (is.null(abund_offset)) {

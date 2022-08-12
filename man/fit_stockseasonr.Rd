@@ -14,6 +14,7 @@ fit_stockseasonr(
   model = c("negbin", "dirichlet", "integrated"),
   random_walk = FALSE,
   fit = TRUE,
+  silent = TRUE,
   nlminb_loops = 1L,
   newton_loops = 0L
 )
@@ -53,6 +54,9 @@ random walk.}
 
 \item{fit}{Logical specifying whether model should be fit in TMB. If FALSE
 list of model inputs is returned.}
+
+\item{silent}{Silent or include optimization details? Helpful to set to FALSE
+for models that take a while to fit.}
 
 \item{nlminb_loops}{How many times to run \code{\link[stats:nlminb]{stats::nlminb()}} optimization.
 Sometimes restarting the optimizer at the previous best values aids
