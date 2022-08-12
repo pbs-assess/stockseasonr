@@ -16,9 +16,19 @@ comp_ex <- comp_full %>%
     month %in% month_seq,
     year %in% year_seq
     ) %>% 
-  droplevels() %>% 
-  rename(prob = agg_prob) %>% 
-  select(-gear, -region_c, -month)
+  #aggregate some stocks for plotting purposes
+  mutate(
+    agg = case_when(
+      grepl("_sp", agg) ~ "CR_spring",
+      grepl("CR", agg) ~ "CR_su/fa",
+      TRUE ~ agg
+    )
+  ) %>% 
+  group_by(sample_id, region, year, month_n, agg, nn) %>% 
+  summarize(prob = sum(agg_prob),
+            .groups = "drop") %>% 
+  ungroup() %>% 
+  droplevels() 
 
 # subset catch data
 catch_ex <- catch_full %>% 
