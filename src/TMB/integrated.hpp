@@ -225,7 +225,7 @@ Type integrated(objective_function<Type>* obj) {
   if (has_preds) {
     
     // abundance predictions
-    vector<Type> pred_mu1 = pred_X1_ij * b1_j;
+    vector<Type> log_pred_mu1 = pred_X1_ij * b1_j;
   
     vector<Type> pred_smooth_i(n_predX);
     pred_smooth_i.setZero();
@@ -244,11 +244,11 @@ Type integrated(objective_function<Type>* obj) {
   
     // combine fixed and smoothed predictions in link space
     for (int m = 0; m < n_predX; m++) {
-      pred_mu1(m) += pred_smooth_i(m);
+      log_pred_mu1(m) += pred_smooth_i(m);
     }
 
     // composition predictions
-    matrix<Type> pred_Mu2(n_predX, n_cat);    //pred FE on log scale
+    matrix<Type> log_pred_Mu2(n_predX, n_cat);    //pred FE on log scale
     matrix<Type> pred_Gamma(n_predX, n_cat);  //transformed pred effects 
     vector<Type> pred_Gamma_plus(n_predX);        
     vector<Type> pred_theta(n_predX); 
@@ -257,9 +257,9 @@ Type integrated(objective_function<Type>* obj) {
     matrix<Type> pred_Pi_prop(n_predX, n_cat); // predicted counts as ppn.
     matrix<Type> logit_pred_Pi_prop(n_predX, n_cat); 
   
-    pred_Mu2 = pred_X2_ij * B2_jk; 
+    log_pred_Mu2 = pred_X2_ij * B2_jk; 
   
-    pred_Gamma = exp(pred_Mu2.array());
+    pred_Gamma = exp(log_pred_Mu2.array());
     pred_Gamma_plus = pred_Gamma.rowwise().sum();
     pred_theta = 1 / (pred_Gamma_plus + 1);
     for(int m = 0; m < n_predX; m++) {
@@ -276,7 +276,7 @@ Type integrated(objective_function<Type>* obj) {
     }
   
     // combined predictions
-    vector<Type> real_pred_mu1 = exp(pred_mu1); // calculate real values for summing
+    vector<Type> real_pred_mu1 = exp(log_pred_mu1); // calculate real values for summing
     matrix<Type> pred_mu1_Pi(n_predX, n_cat);
     for (int m = 0; m < n_predX; m++) {
       for (int k = 0; k < n_cat; k++) {
@@ -286,8 +286,8 @@ Type integrated(objective_function<Type>* obj) {
     matrix<Type> log_pred_mu1_Pi = log(pred_mu1_Pi.array());
   
 
-    ADREPORT(pred_mu1);
-    ADREPORT(pred_Mu2);
+    ADREPORT(log_pred_mu1);
+    ADREPORT(log_pred_Mu2);
     ADREPORT(logit_pred_Pi_prop);
     ADREPORT(log_pred_mu1_Pi);
 
