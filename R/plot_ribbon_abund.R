@@ -19,10 +19,10 @@
 #' @export
 #' 
 #' @importFrom dplyr mutate
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_brewer 
+#' @importFrom ggplot2 ggplot aes aes_string geom_line geom_ribbon  
 #' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit 
-#' @importFrom ggplot2 theme_classic
+#' @importFrom ggplot2 theme_classic scale_fill_brewer
 #' @importFrom rlang .data
 #' 
 #' @examples
@@ -54,7 +54,7 @@
 #'                   pred_dat = dum_pred)
 #' 
 
-plot_ribbon_abund <- function(x_var, grouping_var, facet_var = NULL,
+plot_ribbon_abund <- function(x_var, grouping_var, colour_var = NULL,
                               ssdr, comp_dat, pred_dat) {
   
   comp_abund_pred <- ssdr[rownames(ssdr) %in% "log_pred_mu1_Pi", ]

@@ -18,10 +18,10 @@
 #' @export
 #' 
 #' @importFrom dplyr mutate 
-#' @importFrom ggplot2 ggplot aes geom_area scale_fill_brewer 
+#' @importFrom ggplot2 ggplot aes aes_string geom_area scale_fill_brewer 
 #' @importFrom ggplot2 scale_colour_brewer labs theme scale_x_continuous 
 #' @importFrom ggplot2 facet_wrap coord_cartesian element_text unit
-#' @importFrom ggplot2 theme_classic
+#' @importFrom ggplot2 theme_classic 
 #'
 #' @examples
 #' dum_pred <- expand.grid(
