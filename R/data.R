@@ -3,10 +3,9 @@
 #' Subset of catch and effort data from west-coast Vancouver Island commercial 
 #' troll fishery for Chinook salmon.
 #'
-#' @format A data frame with 77 rows and six variables.
+#' @format A data frame with 56 rows and five variables.
 #' \describe{
 #'   \item{region}{abbreviated catch region}
-#'   \item{area}{Pacific Fishery Management Area (factor)}
 #'   \item{month_n}{month (numeric)}
 #'   \item{year}{year}
 #'   \item{catch}{catch in pieces}
@@ -21,7 +20,7 @@
 #' Subset of genetic stock composition data from west-coast Vancouver Island 
 #' commercial troll fishery for Chinook salmon.
 #'
-#' @format A data frame with 1456 rows and seven variables.
+#' @format A data frame with 1329 rows and seven variables.
 #' \describe{
 #'   \item{sample_id}{sampling event id; here unique to a year day-catch region-
 #'     year}
@@ -30,10 +29,10 @@
 #'   \item{month_n}{month (numeric)}
 #'   \item{agg}{stock aggregate; here corresponds to regional aggregates 
 #'     identified by Pacific Salmon Treaty (e.g., PSD = Puget Sound)}
-#'   \item{agg_prob}{summed individual stock assignment probabilities associated
-#'     with a sampling event}
 #'   \item{nn}{number of samples (individual fish) collected during a sampling 
 #'     event}
+#'   \item{prob}{summed individual stock assignment probabilities associated
+#'     with a sampling event}
 #' }
 #' @source Fisheries and Oceans Canada South Coast Area Office
 "comp_ex"

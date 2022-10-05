@@ -129,7 +129,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     has_smooths <- as.integer(sdmTMB_dummy$tmb_data$has_smooths)
     
     if (has_preds == 1) {
-      resp <- attr(terms(abund_formula), which = "variables")[[2]] %>% 
+      resp <- attr(stats::terms(abund_formula), which = "variables")[[2]] %>% 
         as.character()
       pred_dat[resp] <- 0
       
@@ -233,14 +233,15 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     # identify grouping variable for composition component (e.g. vector of 
     # stock names)
     comp_formula_split <- stringr::str_split(comp_formula, "~")
-    comp_formula_new <- formula(paste("dummy", 
-                                      comp_formula_split[[3]], sep = "~"))
+    comp_formula_new <- stats::formula(
+      paste("dummy", comp_formula_split[[3]], sep = "~")
+    )
     group_var <- comp_formula_split[[2]]
     
     # adjust input data to wide and convert observations to matrix
     comp_wide <- comp_dat %>%
       pivot_wider(names_from = as.name(group_var), 
-                  values_from = prob) %>%
+                  values_from = .data$prob) %>%
       mutate_if(is.numeric, ~ replace_na(., 0.00001)) %>% 
       #add dummy response variable
       mutate(dummy = 0)

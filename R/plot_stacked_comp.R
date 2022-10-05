@@ -29,16 +29,16 @@
 #'   region = unique(comp_ex$region)
 #' )
 #' # model fitting will take several seconds
-#' m1 <- stock_mod_ri <- fit_stockseasonr(
+#' m1 <- fit_stockseasonr(
 #'   comp_formula = agg ~ 1 + region + 
-#'   s(month_n, bs = "tp", k = 4, m = 2) + 
-#'   (1 | year)
-#'   comp_dat = comp_ex
-#'   pred_dat = dum_pred
-#'   model = "dirichlet"
-#'   random_walk = TRUE
-#'   fit = TRUE
-#'   nlminb_loops = 2, newton_loops = 
+#'     s(month_n, bs = "tp", k = 4, m = 2) + 
+#'     (1 | year),
+#'   comp_dat = comp_ex,
+#'   pred_dat = dum_pred,
+#'   model = "dirichlet",
+#'   random_walk = TRUE,
+#'   fit = TRUE,
+#'   nlminb_loops = 2, newton_loops = 1
 #' )
 #' plot_stacked_comp(x_var = "month_n", grouping_var = "agg", 
 #'                   facet_var = "region", ssdr = m1$ssdr, comp_dat = comp_ex,
@@ -84,7 +84,7 @@ plot_stacked_comp <- function(x_var, grouping_var, facet_var = NULL,
   
   if(!is.null(facet_var)) {
     p <- p +
-      facet_wrap(as.formula(paste("~", facet_var)))
+      facet_wrap(stats::as.formula(paste("~", facet_var)))
   }
   
   return(p)
