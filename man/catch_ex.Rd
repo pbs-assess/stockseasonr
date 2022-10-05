@@ -5,10 +5,9 @@
 \alias{catch_ex}
 \title{Example catch data}
 \format{
-A data frame with 77 rows and six variables.
+A data frame with 56 rows and five variables.
 \describe{
 \item{region}{abbreviated catch region}
-\item{area}{Pacific Fishery Management Area (factor)}
 \item{month_n}{month (numeric)}
 \item{year}{year}
 \item{catch}{catch in pieces}

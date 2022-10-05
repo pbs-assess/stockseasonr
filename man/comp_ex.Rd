@@ -5,7 +5,7 @@
 \alias{comp_ex}
 \title{Example composition data}
 \format{
-A data frame with 1456 rows and seven variables.
+A data frame with 1329 rows and seven variables.
 \describe{
 \item{sample_id}{sampling event id; here unique to a year day-catch region-
 year}
@@ -14,10 +14,10 @@ year}
 \item{month_n}{month (numeric)}
 \item{agg}{stock aggregate; here corresponds to regional aggregates
 identified by Pacific Salmon Treaty (e.g., PSD = Puget Sound)}
-\item{agg_prob}{summed individual stock assignment probabilities associated
-with a sampling event}
 \item{nn}{number of samples (individual fish) collected during a sampling
 event}
+\item{prob}{summed individual stock assignment probabilities associated
+with a sampling event}
 }
 }
 \source{
