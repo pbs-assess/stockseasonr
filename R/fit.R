@@ -202,9 +202,9 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       },
       #for some reason cannot fix as zeros when ignore_fix = FALSE; use sdmTMB
       #inputs for length but redefine with rnorm
-      re1 = rnorm(n = length(sdmTMB_dummy$tmb_params$RE %>% as.vector()),
-                  0,
-                  0.5),
+      re1 = stats::rnorm(n = length(sdmTMB_dummy$tmb_params$RE %>% as.vector()),
+                         0,
+                         0.5),
       ln_sigma_re1 = sdmTMB_dummy$tmb_params$ln_tau_G %>% as.vector()
     )
     tmb_pars <- c(tmb_pars, abund_tmb_pars)
@@ -254,7 +254,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     # with multivariate response data 
     fixed_formula <- glmmTMB::splitForm(comp_formula_new)$fixedFormula
     dummy_comp <- mgcv::gam(fixed_formula, data = comp_wide)
-    X2_ij <- predict(dummy_comp, type = "lpmatrix")
+    X2_ij <- stats::predict(dummy_comp, type = "lpmatrix")
     
     # generate RI inputs using sdmTMB 
     sdmTMB_dummy <- sdmTMB::sdmTMB(
@@ -268,7 +268,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     # only, but will be if random int predictions are incorporated (look at 
     # abundance version for reference)
     if (has_preds == 1) { 
-      pred_X2_ij <- predict(dummy_comp, pred_dat, type = "lpmatrix")
+      pred_X2_ij <- stats::predict(dummy_comp, pred_dat, type = "lpmatrix")
     } else {
       pred_X2_ij <- X2_ij
     } 
@@ -302,13 +302,17 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       ),
       #for some reason cannot fix as zeros when ignore_fix = FALSE; use sdmTMB
       #inputs for length but redefine with rnorm
-      re2 = rnorm(n = length(sdmTMB_dummy$tmb_params$RE %>% as.vector()),
-                  0,
-                  0.5),
-      ln_sigma_re2 = rnorm(n = length(sdmTMB_dummy$tmb_params$ln_tau_G %>% 
-                                        as.vector()),
-                           0,
-                           0.5)
+      re2 = stats::rnorm(
+        n = length(sdmTMB_dummy$tmb_params$RE %>% as.vector()),
+        0,
+        0.5
+      ),
+      ln_sigma_re2 = stats::rnorm(
+        n = length(sdmTMB_dummy$tmb_params$ln_tau_G %>% 
+                     as.vector()),
+        0,
+        0.5
+      )
     )
     tmb_pars <- c(tmb_pars, comp_tmb_pars)
     

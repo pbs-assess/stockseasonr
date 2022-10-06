@@ -70,9 +70,9 @@ plot_ribbon_abund <- function(x_var, grouping_var, colour_var = NULL,
     mutate(
       comp_abund_est = exp(.data$link_abund_est),
       comp_abund_low = exp(.data$link_abund_est + 
-                             (qnorm(0.025) * .data$link_abund_se)),
+                             (stats::qnorm(0.025) * .data$link_abund_se)),
       comp_abund_up = exp(.data$link_abund_est + 
-                            (qnorm(0.975) * .data$link_abund_se))
+                            (stats::qnorm(0.975) * .data$link_abund_se))
     ) 
   
   ggplot(dum2, aes_string(x = x_var)) +

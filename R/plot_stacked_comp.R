@@ -64,9 +64,13 @@ plot_stacked_comp <- function(x_var, grouping_var, facet_var = NULL,
   ) %>% 
     cbind(dum, .) %>%
     mutate(
-      pred_prob_est = plogis(link_prob_est),
-      pred_prob_low = plogis(link_prob_est + (qnorm(0.025) * link_prob_se)),
-      pred_prob_up = plogis(link_prob_est + (qnorm(0.975) * link_prob_se))
+      pred_prob_est = stats::plogis(link_prob_est),
+      pred_prob_low = stats::plogis(
+        link_prob_est + (stats::qnorm(0.025) * link_prob_se)
+      ),
+      pred_prob_up = stats::plogis(
+        link_prob_est + (stats::qnorm(0.975) * link_prob_se)
+      )
     ) 
   
   p <- ggplot(data = dum2, aes_string(x = x_var)) +

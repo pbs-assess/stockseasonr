@@ -1,6 +1,6 @@
 Package: stockseasonr
 Title: Seasonal Predictions of Stock Composition and Abundance
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c( 
     person(given = "Cameron",
            family = "Freshwater",
@@ -26,7 +26,6 @@ Depends:
     R (>= 2.10)
 Imports: 
     dplyr,
-    forcats,
     ggplot2,
     glmmTMB,
     magrittr,
