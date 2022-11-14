@@ -43,6 +43,7 @@ Suggests:
     numDeriv,
     rmarkdown,
     testthat
+Remotes: github::pbs-assess/sdmTMB
 LinkingTo: 
     TMB
 Encoding: UTF-8
