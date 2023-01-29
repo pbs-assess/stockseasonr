@@ -9,8 +9,9 @@
 #'   \item{month_n}{month (numeric)}
 #'   \item{year}{year}
 #'   \item{catch}{catch in pieces}
+#'   \item{eff}{vessel days}
 #'   \item{offset}{log(effort) used as an offset when fitting model (i.e. 
-#'     coefficient fixed at one); effort units are vessel days}
+#'     coefficient fixed at one)}
 #' }
 #' @source Fisheries and Oceans Canada South Coast Area Office
 "catch_ex"

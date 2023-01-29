@@ -41,6 +41,7 @@ catch_ex <- catch_full %>%
   group_by(region, month_n, year) %>% 
   summarize(eff = sum(eff),
             catch = sum(catch),
+            offset = log(eff),
             .groups = "drop") %>% 
   ungroup() %>% 
   droplevels() 

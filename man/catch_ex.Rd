@@ -11,8 +11,9 @@ A data frame with 56 rows and five variables.
 \item{month_n}{month (numeric)}
 \item{year}{year}
 \item{catch}{catch in pieces}
+\item{eff}{vessel days}
 \item{offset}{log(effort) used as an offset when fitting model (i.e.
-coefficient fixed at one); effort units are vessel days}
+coefficient fixed at one)}
 }
 }
 \source{
