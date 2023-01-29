@@ -14,8 +14,6 @@ year}
 \item{month_n}{month (numeric)}
 \item{agg}{stock aggregate; here corresponds to regional aggregates
 identified by Pacific Salmon Treaty (e.g., PSD = Puget Sound)}
-\item{nn}{number of samples (individual fish) collected during a sampling
-event}
 \item{prob}{summed individual stock assignment probabilities associated
 with a sampling event}
 }

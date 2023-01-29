@@ -25,7 +25,7 @@ comp_ex <- comp_full %>%
       TRUE ~ agg
     )
   ) %>% 
-  group_by(sample_id, region, year, month_n, agg, nn) %>% 
+  group_by(sample_id, region, year, month_n, agg) %>% 
   summarize(prob = sum(agg_prob),
             .groups = "drop") %>% 
   ungroup() %>% 
