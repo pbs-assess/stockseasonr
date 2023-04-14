@@ -32,9 +32,8 @@
 #'   Sometimes restarting the optimizer at the previous best values aids
 #'   convergence. If the maximum gradient is still too large,
 #'   try increasing this to `2`.
-#' @param newton_loops How many Newton optimization steps to try with 
-#'   [stats::optimHess()] after running [stats::nlminb()]. Sometimes aids 
-#'   convergence.
+#' @param newton_loops Alternative Newton optimizer for [stats::optimHess()]. 
+#'   Sometimes aids convergence.
 #'
 #' @return
 #' List including model inputs as well as output from [TMB::sdreport()] 
@@ -57,7 +56,7 @@
 #'                        model = "dirichlet",
 #'                        random_walk = TRUE,
 #'                        fit = TRUE,
-#'                        nlminb_loops = 2, newton_loops = 1)
+#'                        newton_loops = 1)
 #'                                  
 #' # group-specific integrated model with hierarchical random walk
 #' m2 <- fit_stockseasonr(abund_formula = catch ~ 1 +
@@ -75,7 +74,7 @@
 #'                        random_walk = TRUE,
 #'                        fit = TRUE,
 #'                        silent = FALSE,
-#'                        nlminb_loops = 2, newton_loops = 1)
+#'                        newton_loops = 1)
 #'                                  
 
 fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL, 
@@ -232,11 +231,10 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
   if (model %in% c("integrated", "dirichlet")) {
     # identify grouping variable for composition component (e.g. vector of 
     # stock names)
-    comp_formula_split <- stringr::str_split(comp_formula, "~")
     comp_formula_new <- stats::formula(
-      paste("dummy", comp_formula_split[[3]], sep = "~")
+      paste("dummy", deparse(comp_formula[[3]]), sep = "~")
     )
-    group_var <- comp_formula_split[[2]]
+    group_var <- deparse(comp_formula[[2]])
     
     # adjust input data to wide and convert observations to matrix
     comp_wide <- comp_dat %>%
@@ -379,8 +377,6 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
   tmb_data <- c(tmb_data, shared_tmb_data)
   
   # combine model specs to pass as logicals to fitting function
-  # model_specs <- list(model = model#, include_re_preds = include_re_preds
-  # )
   # 
   out_list <- list(tmb_data = tmb_data, tmb_pars = tmb_pars, tmb_map = tmb_map, 
                    tmb_random = tmb_random)
@@ -405,7 +401,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     }
     
     obj <- TMB::MakeADFun(
-      data = c(list(model = tmb_model), tmb_data), #tmb_data,
+      data = c(list(model = tmb_model), tmb_data), 
       parameters = tmb_pars, 
       map = tmb_map,
       random = tmb_random,

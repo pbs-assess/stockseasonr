@@ -63,9 +63,8 @@ Sometimes restarting the optimizer at the previous best values aids
 convergence. If the maximum gradient is still too large,
 try increasing this to \code{2}.}
 
-\item{newton_loops}{How many Newton optimization steps to try with
-\code{\link[stats:optim]{stats::optimHess()}} after running \code{\link[stats:nlminb]{stats::nlminb()}}. Sometimes aids
-convergence.}
+\item{newton_loops}{Alternative Newton optimizer for \code{\link[stats:optim]{stats::optimHess()}}.
+Sometimes aids convergence.}
 }
 \value{
 List including model inputs as well as output from \code{\link[TMB:sdreport]{TMB::sdreport()}}
@@ -87,7 +86,7 @@ m1 <- fit_stockseasonr(comp_formula = agg ~ 1 + region +
                        model = "dirichlet",
                        random_walk = TRUE,
                        fit = TRUE,
-                       nlminb_loops = 2, newton_loops = 1)
+                       newton_loops = 1)
                                  
 # group-specific integrated model with hierarchical random walk
 m2 <- fit_stockseasonr(abund_formula = catch ~ 1 +
@@ -105,6 +104,6 @@ m2 <- fit_stockseasonr(abund_formula = catch ~ 1 +
                        random_walk = TRUE,
                        fit = TRUE,
                        silent = FALSE,
-                       nlminb_loops = 2, newton_loops = 1)
+                       newton_loops = 1)
                                  
 }
