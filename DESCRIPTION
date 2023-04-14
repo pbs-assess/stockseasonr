@@ -34,7 +34,6 @@ Imports:
     rlang,
     sdmTMB,
     stats,
-    stringr,
     tidyr,
     TMB
 Suggests: 
