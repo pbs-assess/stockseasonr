@@ -4,7 +4,6 @@
 #include <TMB.hpp>
 #include "dirichlet.hpp"
 #include "integrated.hpp"
-#include "nb_dirchlet_1re.hpp"
 #include "negbin.hpp"
 
 template<class Type>
@@ -14,8 +13,6 @@ Type objective_function<Type>::operator() () {
     return dirichlet(this);
   } else if(model == "integrated") {
     return integrated(this);
-  } else if(model == "nb_dirchlet_1re") {
-    return nb_dirchlet_1re(this);
   } else if(model == "negbin") {
     return negbin(this);
   } else {
