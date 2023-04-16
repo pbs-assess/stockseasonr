@@ -3,8 +3,8 @@ title: "Introduction to stockseasonr"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to stockseasonr}
-  %\VignetteEngine{knitr::knitr}
-  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE, cache = FALSE}
