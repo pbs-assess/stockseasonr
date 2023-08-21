@@ -230,16 +230,14 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
   # as above but for composition component of model
   if (model %in% c("integrated", "dirichlet")) {
     # identify grouping variable for composition component (e.g. vector of 
-    # stock names)
-    comp_formula_new <- stats::formula(
-      paste("dummy", deparse(comp_formula[[3]]), sep = "~")
-    )
+    # stock names) and change name to dummy
+    comp_formula_new <- update(comp_formula, dummy ~ .)
     group_var <- deparse(comp_formula[[2]])
     
     # adjust input data to wide and convert observations to matrix
     comp_wide <- comp_dat %>%
       pivot_wider(names_from = as.name(group_var), 
-                  values_from = .data$prob) %>%
+                  values_from = prob) %>%
       mutate_if(is.numeric, ~ replace_na(., 0.00001)) %>% 
       #add dummy response variable
       mutate(dummy = 0)
@@ -406,7 +404,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       map = tmb_map,
       random = tmb_random,
       DLL = "stockseasonr_TMBExports",
-      silent = silent
+      silent = TRUE#silent
     )
     opt <- stats::nlminb(obj$par, obj$fn, obj$gr)
     
