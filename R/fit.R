@@ -404,7 +404,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       map = tmb_map,
       random = tmb_random,
       DLL = "stockseasonr_TMBExports",
-      silent = TRUE#silent
+      silent = silent
     )
     opt <- stats::nlminb(obj$par, obj$fn, obj$gr)
     
