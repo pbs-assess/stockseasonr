@@ -1,7 +1,8 @@
 ---
 output: 
   github_document:
-    includes:
+  df_print: "tibble"
+  includes:
       in_header: header.md
 ---
 
@@ -12,7 +13,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "60%"
 )
 ```
 
@@ -48,17 +49,16 @@ library(stockseasonr)
 ```
 
 ```{r echo=TRUE}
-dat_in <- fit_stockseasonr(abund_formula = catch ~ 1 +
-                             s(month_n, bs = "tp", k = 3, m = 2) +
-                             region +
-                             (1 | year),
-                           abund_dat = catch_ex,
-                           comp_formula = agg ~ 1 + region +
-                             s(month_n, bs = "tp", k = 4, m = 2) +
-                             (1 | year),
-                           comp_dat = comp_ex,
-                           model = "integrated",
-                           fit = FALSE)
+dat_in <- fit_stockseasonr(
+  abund_formula = catch ~ 1 + s(month_n, bs = "tp", k = 3, m = 2) + region + 
+    (1 | year),
+  abund_dat = catch_ex,
+  comp_formula = agg ~ 1 + region + s(month_n, bs = "tp", k = 4, m = 2) +
+    (1 | year),
+  comp_dat = comp_ex,
+  model = "integrated",
+  fit = FALSE
+)
 ```
 
 `fit_stockseasonr()` reshapes or 'widens' the composition data, then in-fills zero observations for a given group with small values (0.00001) to ensure model convergence. It next uses the `mgcv` and `sdmTMB` packages to create model matrices including seasonal smooths and random intercepts for years. The result is a list of five elements:
@@ -78,19 +78,18 @@ new_dat <- expand.grid(
   region = unique(comp_ex$region)
 )
 
-m1 <- fit_stockseasonr(abund_formula = catch ~ 1 +
-                             s(month_n, bs = "tp", k = 3, m = 2) +
-                             region +
-                             (1 | year),
-                           abund_dat = catch_ex,
-                           comp_formula = agg ~ 1 + region +
-                             s(month_n, bs = "tp", k = 4, m = 2) +
-                             (1 | year),
-                           comp_dat = comp_ex,
-                           model = "integrated",
-                       pred_dat = new_dat,
-                           random_walk = TRUE,
-                           fit = TRUE)
+m1 <- fit_stockseasonr(
+  abund_formula = catch ~ 1 + s(month_n, bs = "tp", k = 3, m = 2) + region +
+    (1 | year),
+  abund_dat = catch_ex,
+  comp_formula = agg ~ 1 + region + s(month_n, bs = "tp", k = 4, m = 2) + 
+    (1 | year),
+  comp_dat = comp_ex,
+  model = "integrated",
+  pred_dat = new_dat,
+  random_walk = TRUE,
+  fit = TRUE
+)
 ```
 
 The object `m1` contains the model inputs described above, as well as a `TMB::sdreport()` object (named `sdr`), which includes parameter estimates for fixed effects.
@@ -121,15 +120,17 @@ head(ssdr[rownames(ssdr) %in% "log_pred_mu1_Pi", ])
 stockseasonr includes built-in plotting functions as example visualizations for predictions. For example, predictions of seasonal trends in mean stock composition can be visualized with `plot_stacked_comp()`.
 
 ```{r echo=TRUE}
-plot_stacked_comp(x_var = "month_n", grouping_var = "agg", 
-                  facet_var = "region", ssdr = m1$ssdr, comp_dat = comp_ex,
-                  pred_dat = new_dat)
+plot_stacked_comp(
+  x_var = "month_n", grouping_var = "agg", facet_var = "region", 
+  ssdr = m1$ssdr, comp_dat = comp_ex, pred_dat = new_dat
+)
 ```
 
 Estimates of stock-specific abundance can be used with the same inputs and `plot_ribbon_abund()`.
 
 ```{r echo=TRUE}
-plot_ribbon_abund(x_var = "month_n", grouping_var = "agg", 
-                 colour_var = "region", ssdr = m1$ssdr, comp_dat = comp_ex,
-                 pred_dat = new_dat)
+plot_ribbon_abund(
+  x_var = "month_n", grouping_var = "agg", colour_var = "region", 
+  ssdr = m1$ssdr, comp_dat = comp_ex, pred_dat = new_dat
+)
 ```
