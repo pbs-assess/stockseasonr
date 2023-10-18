@@ -134,7 +134,8 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
       
       sdmTMB_dummy_p <- sdmTMB::sdmTMB(
         # exclude REs from predictive dataset
-        glmmTMB::splitForm(abund_formula)$fixedFormula,
+        # glmmTMB::splitForm(abund_formula)$fixedFormula,
+        split_form(abund_formula)$form_no_bars,
         data = pred_dat,
         spatial = "off",
         do_fit = FALSE
@@ -248,7 +249,8 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     # generate main effects model matrix 
     # NOTE can't use sdmTMB because penalized smooths are not readily compatible
     # with multivariate response data 
-    fixed_formula <- glmmTMB::splitForm(comp_formula_new)$fixedFormula
+    # fixed_formula <- glmmTMB::splitForm(comp_formula_new)$fixedFormula
+    fixed_formula <- split_form(comp_formula_new)$form_no_bars
     dummy_comp <- mgcv::gam(fixed_formula, data = comp_wide)
     X2_ij <- stats::predict(dummy_comp, type = "lpmatrix")
     

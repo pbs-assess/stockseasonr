@@ -19,3 +19,20 @@ rw_index_foo <- function(re_indexes) {
   }
   return(rw_index)
 }
+
+
+# functions from sdmTMB to replace old glmmTMB::splitForm 
+safe_deparse <- function(x, collapse = " ") {
+  paste(deparse(x, 500L), collapse = collapse)
+}
+
+barnames <- function (bars) {
+  vapply(bars, function(x) safe_deparse(x[[3]]), "")
+}
+
+split_form <- function (f) {
+  b <- lme4::findbars(f)
+  bn <- barnames(b)
+  fe_form <- lme4::nobars(f)
+  list(bars = b, barnames = bn, form_no_bars = fe_form, n_bars = length(bn))
+}
