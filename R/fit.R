@@ -236,15 +236,25 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     group_var <- deparse(comp_formula[[2]])
     
     # adjust input data to wide and convert observations to matrix
+    # comp_wide <- comp_dat %>%
+    #   pivot_wider(names_from = as.name(group_var), 
+    #               values_from = prob) %>%
+    #   mutate_if(is.numeric, ~ replace_na(., 0.00001)) %>% 
+    #   #add dummy response variable
+    #   mutate(dummy = 0)
+    # group_names <- unique(comp_dat[[group_var]])
+    # obs_comp <- comp_wide[ , group_names] %>%
+    #   as.matrix()
     comp_wide <- comp_dat %>%
       pivot_wider(names_from = as.name(group_var), 
                   values_from = prob) %>%
-      mutate_if(is.numeric, ~ replace_na(., 0.00001)) %>% 
-      #add dummy response variable
+      # #add dummy response variable
       mutate(dummy = 0)
     group_names <- unique(comp_dat[[group_var]])
     obs_comp <- comp_wide[ , group_names] %>%
       as.matrix()
+    obs_comp[is.na(obs_comp)] <- .00001
+    
     
     # generate main effects model matrix 
     # NOTE can't use sdmTMB because penalized smooths are not readily compatible
