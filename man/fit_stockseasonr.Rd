@@ -10,6 +10,8 @@ fit_stockseasonr(
   abund_dat = NULL,
   comp_dat = NULL,
   abund_offset = NULL,
+  abund_knots = NULL,
+  comp_knots = NULL,
   pred_dat = NULL,
   model = c("negbin", "dirichlet", "integrated"),
   random_walk = FALSE,
@@ -41,6 +43,13 @@ column of class factor) and covariates.}
 
 \item{abund_offset}{A numeric vector representing the model offset. Usually a
 log transformed variable. \emph{Not included in any prediction.}}
+
+\item{abund_knots}{Optional named list containing knot values to be used for basis
+construction of smoothing terms in abundance component of model. See
+\code{\link[mgcv:gam]{mgcv::gam()}} and \code{\link[mgcv:gamm]{mgcv::gamm()}}.
+E.g., \verb{s(x, bs = 'cc', k = 4), knots = list(x = c(1, 2, 3, 4))}}
+
+\item{comp_knots}{As above, but for composition component of model.}
 
 \item{pred_dat}{Optional dataframe used to generate predictions. Note that
 in integrated model this applies to both abundance and composition

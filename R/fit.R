@@ -17,6 +17,11 @@
 #'   column of class factor) and covariates.
 #' @param abund_offset A numeric vector representing the model offset. Usually a
 #'   log transformed variable. *Not included in any prediction.*
+#' @param abund_knots Optional named list containing knot values to be used for basis
+#'   construction of smoothing terms in abundance component of model. See 
+#'   [mgcv::gam()] and [mgcv::gamm()].
+#'   E.g., `s(x, bs = 'cc', k = 4), knots = list(x = c(1, 2, 3, 4))`
+#' @param comp_knots As above, but for composition component of model.
 #' @param pred_dat Optional dataframe used to generate predictions. Note that 
 #'   in integrated model this applies to both abundance and composition 
 #'   components. 
@@ -80,6 +85,7 @@
 fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL, 
                              abund_dat = NULL, comp_dat = NULL,
                              abund_offset = NULL,
+                             abund_knots = NULL, comp_knots = NULL,
                              pred_dat = NULL,
                              model = c("negbin", "dirichlet", "integrated"),
                              random_walk = FALSE,
@@ -136,6 +142,7 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
         # exclude REs from predictive dataset
         # glmmTMB::splitForm(abund_formula)$fixedFormula,
         split_form(abund_formula)$form_no_bars,
+        knots = abund_knots,
         data = pred_dat,
         spatial = "off",
         do_fit = FALSE
@@ -261,8 +268,13 @@ fit_stockseasonr <- function(abund_formula = NULL, comp_formula = NULL,
     # with multivariate response data 
     # fixed_formula <- glmmTMB::splitForm(comp_formula_new)$fixedFormula
     fixed_formula <- split_form(comp_formula_new)$form_no_bars
-    dummy_comp <- mgcv::gam(fixed_formula, data = comp_wide)
+    dummy_comp <- mgcv::gam(
+      fixed_formula,
+      data = comp_wide, 
+      knots = comp_knots
+    )
     X2_ij <- stats::predict(dummy_comp, type = "lpmatrix")
+    
     
     # generate RI inputs using sdmTMB 
     sdmTMB_dummy <- sdmTMB::sdmTMB(
