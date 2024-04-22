@@ -1,12 +1,10 @@
 ---
 output: 
   github_document:
-  df_print: "tibble"
-  includes:
+    df_print: "tibble"
+    includes:
       in_header: header.md
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
